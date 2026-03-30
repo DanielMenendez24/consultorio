@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listar Pacientes | La Segunda Opción</title>
+    <title>Listar Turnos | La Segunda Opción</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -43,12 +43,13 @@
     <main>
         <section class="search-section">
             <div class="search-container glass-card">
-                <h2 class="section-title">Buscar Paciente</h2>
+                <h2 class="section-title">Buscar Turno</h2>
                 <div class="form-group search-form-group">
                     <div class="input-container search-input-wrapper">
                         <div class="search-input-field">
                             <span class="input-icon center-icon">🔍</span>
-                            <input type="text" id="search-ci" placeholder="Ingrese CI del paciente...">
+                            <!-- CI validation accepts regular CIs, we'll allow search by patient/doctor ci -->
+                            <input type="text" id="search-ci" placeholder="Ingrese CI del paciente o médico...">
                         </div>
                         <button class="btn-primary search-btn">Buscar</button>
                     </div>
@@ -63,31 +64,21 @@
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>ID del Paciente</th>
-                                <th>Documento</th>
+                                <th>Fecha y hora</th>
                                 <th>Paciente</th>
-                                <th>Sexo</th>
-                                <th>Fecha de Nacimiento</th>
-                                <th>Dirección</th>
-                                <th>Tipo de Sangre</th>
+                                <th>Médico</th>
+                                <th>Especialidad</th>
+                                <th>Motivo</th>
+                                <th>Observaciones</th>
+                                <th>Estado</th>
                             </tr>
                         </thead>
-                        <tbody id="pacientes-tbody">
+                        <tbody id="turnos-tbody">
                             <tr>
                                 <td colspan="7" class="table-empty-message">
-                                    Ingrese un número de CI y presione buscar para ver los datos del paciente.
+                                    Ingrese un número de CI y presione buscar para ver los turnos.
                                 </td>
                             </tr>
-                            <!-- Ejemplos:  -->
-                            <tr>
-                                <td>12345678</td>
-                                <td>Juan Pérez</td>
-                                <td>Masculino</td>
-                                <td>15/05/1985</td>
-                                <td>Av. Siempre Viva 123</td>
-                                <td>O+</td>
-                            </tr>
-                           
                         </tbody>
                     </table>
                 </div>

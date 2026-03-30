@@ -72,7 +72,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 alert('El documento ingresado no parece correcto. Ingrese nuevamente');
             } else {
-                // Simulación o ejecución de búsqueda (acá iría la lógica)
+                // Simulación o ejecución de búsqueda
+                // Despachamos un evento personalizado para que listar.js lo escuche
+                const searchEvent = new CustomEvent('valid-search', { detail: { ci: ciValue } });
+                document.dispatchEvent(searchEvent);
+                
                 // Limpiar el contenido del input tras buscar:
                 searchInput.value = '';
             }
