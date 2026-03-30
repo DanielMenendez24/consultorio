@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listar Pacientes | La Segunda Opción</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="services-page">
+    <header>
+        <nav>
+            <div class="logo-small">
+                <span class="logo-icon">
+                    <img src="assets/img/lasegundaopcion_logo.png" alt="Logo La Segunda Opción">
+                </span>
+                <span>La Segunda Opción</span>
+            </div>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <ul>
+                <li><a href="consultorio.html">Inicio</a></li>
+                <li class="dropdown">
+                    <a href="#">Listar</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="list_pacientes.html">Pacientes</a></li>
+                        <li><a href="#">Médicos</a></li>
+                        <li><a href="#">Turnos</a></li>
+                    </ul>
+                </li>
+                <li><a href="#">Registrar</a></li>
+                <li><a href="#">Actualizar</a></li>
+                <li><a href="#">Eliminar</a></li>
+                <li><a href="index.html">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="search-section">
+            <div class="search-container glass-card">
+                <h2 class="section-title">Buscar Paciente</h2>
+                <div class="form-group search-form-group">
+                    <div class="input-container search-input-wrapper">
+                        <div class="search-input-field">
+                            <span class="input-icon center-icon">🔍</span>
+                            <input type="text" id="search-ci" placeholder="Ingrese CI del paciente...">
+                        </div>
+                        <button class="btn-primary search-btn">Buscar</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="table-section">
+            <div class="table-container glass-card">
+                <h2 class="section-title">Resultados</h2>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>CI</th>
+                                <th>Nombre Completo</th>
+                                <th>Sexo</th>
+                                <th>Fecha de Nacimiento</th>
+                                <th>Dirección</th>
+                                <th>Tipo de Sangre</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pacientes-tbody">
+                            <tr>
+                                <td colspan="6" class="table-empty-message">
+                                    Ingrese un número de CI y presione buscar para ver los datos del paciente.
+                                </td>
+                            </tr>
+                            <!-- Ejemplos:  -->
+                            <tr>
+                                <td>12345678</td>
+                                <td>Juan Pérez</td>
+                                <td>Masculino</td>
+                                <td>15/05/1985</td>
+                                <td>Av. Siempre Viva 123</td>
+                                <td>O+</td>
+                            </tr>
+                           
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>La Segunda Opción | El lugar donde Google viene a confirmar sus dudas.<br>
+            Todos los derechos reservados &copy; 2026</p>
+    </footer>
+    <script src="assets/js/mobile-menu.js"></script>
+    <script src="assets/js/validation.js"></script>
+</body>
+</html>

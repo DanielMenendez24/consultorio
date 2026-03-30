@@ -320,6 +320,51 @@ nav ul li a:hover::after, nav ul li a.active::after {
     width: 100%;
 }
 
+/* Dropdown Menu */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 160px;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-main);
+    display: none;
+    flex-direction: column;
+    padding: 0.5rem 0;
+    z-index: 1000;
+    margin-top: 0.5rem;
+}
+
+.dropdown.active .dropdown-menu {
+    display: flex;
+}
+
+.dropdown-menu li {
+    width: 100%;
+}
+
+.dropdown-menu li a {
+    display: block;
+    padding: 0.75rem 1.5rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.dropdown-menu li a::after {
+    display: none;
+}
+
+.dropdown-menu li a:hover {
+    background-color: var(--bg-color);
+    color: var(--primary);
+}
+
 /* Services Main Content */
 main {
     max-width: 1200px;
@@ -445,6 +490,86 @@ main {
     line-height: 1.6;
 }
 
+/* Custom Pages Styles (Search and Table) */
+.search-container, .table-container {
+    padding: 2rem;
+}
+
+.search-container {
+    margin-bottom: 2rem;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-main);
+}
+
+.search-form-group {
+    margin-bottom: 0;
+}
+
+.search-input-wrapper {
+    display: flex;
+    gap: 1rem;
+}
+
+.search-input-field {
+    position: relative;
+    flex: 1;
+}
+
+.center-icon {
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.search-btn {
+    width: auto;
+    padding: 0.75rem 2rem;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.table-empty-message {
+    text-align: center;
+    padding: 2.5rem;
+    color: var(--text-muted);
+}
+
+/* Table Styles */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.data-table th, .data-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.data-table th {
+    font-weight: 600;
+    color: var(--text-main);
+    background-color: var(--bg-color);
+}
+
+.data-table th:first-child {
+    border-top-left-radius: 0.5rem;
+}
+
+.data-table th:last-child {
+    border-top-right-radius: 0.5rem;
+}
+
+.data-table tr:hover td {
+    background-color: var(--bg-color);
+}
+
 /* Footer */
 footer {
     padding: 4rem 2rem;
@@ -488,6 +613,27 @@ footer p {
 
     nav ul li a {
         font-size: 1.25rem;
+    }
+
+    .dropdown-menu {
+        position: static;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+        min-width: 100%;
+        padding: 0;
+        margin-top: 0.5rem;
+        display: none;
+    }
+    
+    .dropdown.active .dropdown-menu {
+        display: flex;
+    }
+
+    .dropdown-menu li a {
+        padding: 0.5rem 0;
+        font-size: 1.1rem;
+        text-align: center;
     }
 
     /* Hero Section (Stacked) */
