@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('form-reg-paciente');
+    const form = document.getElementById('form-reg-medico');
     let originalData = null;
 
     if (form) {
@@ -34,8 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 document.getElementById('calle').value = person.calle || '';
                                 document.getElementById('numeroPuerta').value = person.nroApartamento || '';
                                 document.getElementById('telPersona').value = person.telefono || '';
-                                if (person.tipoSangre) {
-                                    document.getElementById('tipoSangre').value = person.tipoSangre;
+                                if (person.especialidad) {
+                                    document.getElementById('especialidad').value = person.especialidad;
                                 }
 
                                 if (btnModificar) btnModificar.disabled = false;
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     calle: person.calle || '',
                                     numeroPuerta: person.nroApartamento || '',
                                     telPersona: person.telefono || '',
-                                    tipoSangre: person.tipoSangre || ''
+                                    especialidad: person.especialidad || ''
                                 };
                             }
                         }
@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     calle: document.getElementById('calle').value,
                     numeroPuerta: document.getElementById('numeroPuerta').value,
                     telPersona: document.getElementById('telPersona').value,
-                    tipoSangre: document.getElementById('tipoSangre').value
+                    especialidad: document.getElementById('especialidad').value
                 };
 
                 // Filter only changed fields
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    const response = await fetch(`http://localhost:3000/paciente/${originalData ? originalData.ci : ci}`, {
+                    const response = await fetch(`http://localhost:3000/medico/${originalData ? originalData.ci : ci}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(updates)
@@ -132,11 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 calle: document.getElementById('calle').value,
                 numeroPuerta: document.getElementById('numeroPuerta').value,
                 telPersona: document.getElementById('telPersona').value,
-                tipoSangre: document.getElementById('tipoSangre').value
+                especialidad: document.getElementById('especialidad').value
             };
 
             try {
-                const response = await fetch('http://localhost:3000/paciente', {
+                const response = await fetch('http://localhost:3000/medico', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok) {
                     const result = await response.json();
-                    alert('¡Paciente registrado con éxito!');
+                    alert('¡Médico registrado con éxito!');
                     form.reset(); 
                     originalData = null; // Clear original data
                 } else {

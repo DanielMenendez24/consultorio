@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registrar pacientes | La Segunda Opción</title>
+    <title>Registrar médicos | La Segunda Opción</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
@@ -64,13 +64,13 @@
     <main>
         <section class="form-section" style="padding: 2rem; max-width: 900px; margin: 0 auto; margin-top: 4rem;">
             <div class="glass-card">
-                <button type="reset" form="form-reg-paciente" class="btn-clear-form" title="Vaciar todos los campos">
+                <button type="reset" form="form-reg-medico" class="btn-clear-form" title="Vaciar todos los campos">
                     <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></i>
                     Vaciar campos
                 </button>
-                <h2 class="section-title">Registrar Nuevo Paciente</h2>
+                <h2 class="section-title">Registrar Nuevo Médico</h2>
                 <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Los campos marcados con * son obligatorios.</p>
-                <form id="form-reg-paciente">
+                <form id="form-reg-medico">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="ci">Documento de Identidad (CI)*</label>
@@ -161,25 +161,22 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="tipoSangre">Tipo de Sangre*</label>
-                            <select id="tipoSangre" name="tipoSangre" required>
+                            <label for="especialidad">Especialidad*</label>
+                            <select id="especialidad" name="especialidad" required>
                                 <option value="" disabled selected>Seleccione...</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                                <option value="No sabe">No sabe</option>
+                                <option value="Medicina general">Medicina general</option>
+                                <option value="Pediatria">Pediatria</option>
+                                <option value="Odontologia">Odontologia</option>
+                                <option value="Oftalmologia">Oftalmologia</option>
+                                <option value="Cirujia">Cirujia</option>
+                                <option value="Psicologia">Psicologia</option>
                             </select>
                         </div>
                     </div>
                     
                     <div class="form-actions" style="margin-top: 2rem; justify-content: flex-end; gap: 1rem;">
                         <button type="button" id="btn-modificar" class="btn-secondary" style="max-width: 250px;" disabled>Modificar Datos</button>
-                        <button type="submit" class="btn-primary" style="max-width: 250px;">Registrar Paciente</button>
+                        <button type="submit" class="btn-primary" style="max-width: 250px;">Registrar Médico</button>
                     </div>
                 </form>
             </div>
@@ -191,6 +188,6 @@
     </footer>
     <script src="../assets/js/mobile-menu.js"></script>
     <script src="../assets/js/validation.js"></script>
-    <script src="../assets/js/reg_paciente.js"></script>
+    <script src="../assets/js/reg_medico.js"></script>
 </body>
 </html>

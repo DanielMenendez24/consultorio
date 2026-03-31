@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tbody.innerHTML = '';
         
         if (!data || data.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="7" class="table-empty-message">No se encontraron ${itemName} registrados con esos criterios.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="table-empty-message">No se encontraron ${itemName} registrados con esos criterios.</td></tr>`;
             return;
         }
 
@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 const direccion = p.Direccion || 'N/A';
+                const telefono = p.telefono || 'N/A';
                 const attrEspecial = isMedicos ? (p.especialidad || 'N/A') : (p.tipoSangre || 'N/A');
 
                 tr.innerHTML = `
@@ -68,6 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${sexo}</td>
                     <td>${fecha}</td>
                     <td>${direccion}</td>
+                    <td>${telefono}</td>
                     <td>${attrEspecial}</td>
                 `;
             }
@@ -77,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fetchData = async (ci = null) => {
         try {
-            tbody.innerHTML = `<tr><td colspan="7" class="table-empty-message">⏳ Buscando registros...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="8" class="table-empty-message">⏳ Buscando registros...</td></tr>`;
             
             const url = ci ? `http://localhost:3000/${pathBase}/${ci}` : `http://localhost:3000/${pathBase}`;
             const response = await fetch(url);
@@ -91,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
         } catch (error) {
             console.error('Error del servidor:', error);
-            tbody.innerHTML = `<tr><td colspan="7" class="table-empty-message" style="color: #ef4444;">
+            tbody.innerHTML = `<tr><td colspan="8" class="table-empty-message" style="color: #ef4444;">
                 <strong>Error: No se pudo conectar a la base de datos MySQL.</strong><br><br>
                 Asegúrate de tener el backend corriendo. Abre una terminal y ejecuta:<br>
                 <code>node assets/js/server.js</code>
