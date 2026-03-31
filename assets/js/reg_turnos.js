@@ -1,15 +1,64 @@
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('form-reg-turno');
     const ciPacienteInput = document.getElementById('ciPaciente');
-    const ciMedicoInput = document.getElementById('ciMedico');
+    const especialidadSelect = document.getElementById('especialidad');
+    const ciMedicoSelect = document.getElementById('ciMedico');
     const nombrePacienteInput = document.getElementById('nombrePaciente');
-    const nombreMedicoInput = document.getElementById('nombreMedico');
     const btnModificar = document.getElementById('btn-modificar');
     const fechaInput = document.getElementById('fecha');
 
     let currentTurnoId = null;
 
     if (form) {
+        // --- Fetch Specialties on Load ---
+        const fetchSpecialties = async () => {
+            try {
+                const response = await fetch('http://localhost:3000/especialidad');
+                if (response.ok) {
+                    const specialties = await response.json();
+                    especialidadSelect.innerHTML = '<option value="" disabled selected>Seleccione especialidad...</option>';
+                    specialties.forEach(esp => {
+                        const option = document.createElement('option');
+                        option.value = esp;
+                        option.textContent = esp;
+                        especialidadSelect.appendChild(option);
+                    });
+                }
+            } catch (err) {
+                console.error('Error fetching specialties:', err);
+            }
+        };
+
+        // --- Fetch Doctors by Specialty ---
+        const fetchDoctorsBySpecialty = async (specialty, selectedCi = null) => {
+            try {
+                const response = await fetch(`http://localhost:3000/medico/especialidad/${encodeURIComponent(specialty)}`);
+                if (response.ok) {
+                    const doctors = await response.json();
+                    ciMedicoSelect.innerHTML = '<option value="" disabled selected>Seleccione médico...</option>';
+                    doctors.forEach(doc => {
+                        const option = document.createElement('option');
+                        option.value = doc.ci;
+                        option.textContent = `${doc.nombre} (CI: ${doc.ci})`;
+                        ciMedicoSelect.appendChild(option);
+                    });
+                    ciMedicoSelect.disabled = false;
+                    
+                    if (selectedCi) {
+                        ciMedicoSelect.value = selectedCi;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching doctors:', err);
+            }
+        };
+
+        fetchSpecialties();
+
+        especialidadSelect.addEventListener('change', () => {
+            fetchDoctorsBySpecialty(especialidadSelect.value);
+        });
+
         // --- Logic to check existing appointment for search/update ---
         const checkExistingTurno = async () => {
             const ciPaciente = ciPacienteInput.value.trim();
@@ -22,10 +71,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (data && data.length > 0) {
                             const turno = data[0];
                             currentTurnoId = turno.idConsulta;
-                            ciMedicoInput.value = turno.ciMedico;
                             
-                            // Trigger auto-fill for doctor name
-                            fetchDoctorName(turno.ciMedico);
+                            // To set the doctor correctly, we first fetch their info to get their specialty
+                            const docInfoResp = await fetch(`http://localhost:3000/persona/${turno.ciMedico}`);
+                            if (docInfoResp.ok) {
+                                const docInfo = await docInfoResp.json();
+                                if (docInfo && docInfo.length > 0) {
+                                    const specialty = docInfo[0].especialidad;
+                                    especialidadSelect.value = specialty;
+                                    await fetchDoctorsBySpecialty(specialty, turno.ciMedico);
+                                }
+                            }
 
                             document.getElementById('hora').value = turno.horaConsulta;
                             document.getElementById('motivo').value = turno.motivoConsulta;
@@ -44,7 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // --- Auto-fill fetching functions ---
+        // --- Auto-fill fetching functions (Patient only now) ---
         const fetchPatientName = async (ci) => {
             if (ci.length >= 7) {
                 try {
@@ -69,41 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        const fetchDoctorName = async (ci) => {
-            if (ci.length >= 7) {
-                try {
-                    const response = await fetch(`http://localhost:3000/persona/${ci}`);
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data && data.length > 0) {
-                            const person = data[0];
-                            if (person.especialidad) {
-                                nombreMedicoInput.value = `${person.apellidoP}, ${person.nombreP} (${person.especialidad})`;
-                                nombreMedicoInput.style.color = '#10b981';
-                            } else {
-                                nombreMedicoInput.value = 'Persona existe pero NO es MÉDICO';
-                                nombreMedicoInput.style.color = '#ef4444';
-                            }
-                        } else {
-                            nombreMedicoInput.value = 'Médico no encontrado';
-                            nombreMedicoInput.style.color = '#ef4444';
-                        }
-                    }
-                } catch (err) { console.error(err); }
-            }
-        };
-
-        // --- Event Listeners for Auto-fill ---
+        // --- Event Listeners ---
         ciPacienteInput.addEventListener('blur', () => {
             fetchPatientName(ciPacienteInput.value.trim());
             checkExistingTurno();
         });
 
         fechaInput.addEventListener('change', checkExistingTurno);
-
-        ciMedicoInput.addEventListener('blur', () => {
-            fetchDoctorName(ciMedicoInput.value.trim());
-        });
 
         // Disable modify button if CI or Date changes
         [ciPacienteInput, fechaInput].forEach(el => {
@@ -118,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const formData = {
                 ciPaciente: ciPacienteInput.value,
-                ciMedico: ciMedicoInput.value,
+                ciMedico: ciMedicoSelect.value,
                 fecha: document.getElementById('fecha').value,
                 hora: document.getElementById('hora').value,
                 motivo: document.getElementById('motivo').value,
@@ -130,8 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Por favor, ingrese un paciente válido.');
                 return;
             }
-            if (nombreMedicoInput.value.includes('no encontrado') || nombreMedicoInput.value.includes('NO es MÉDICO')) {
-                alert('Por favor, ingrese un médico válido.');
+            
+            if (!formData.ciMedico) {
+                alert('Por favor, seleccione un médico.');
                 return;
             }
 
@@ -146,7 +175,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     alert('¡Turno registrado con éxito!');
                     form.reset();
                     nombrePacienteInput.value = '';
-                    nombreMedicoInput.value = '';
+                    ciMedicoSelect.innerHTML = '<option value="" disabled selected>Seleccione especialidad primero...</option>';
+                    ciMedicoSelect.disabled = true;
                     currentTurnoId = null;
                 } else {
                     const error = await response.json();
@@ -194,7 +224,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (btnClear) {
             btnClear.addEventListener('click', () => {
                 nombrePacienteInput.value = '';
-                nombreMedicoInput = '';
+                ciMedicoSelect.innerHTML = '<option value="" disabled selected>Seleccione especialidad primero...</option>';
+                ciMedicoSelect.disabled = true;
                 currentTurnoId = null;
                 if (btnModificar) btnModificar.disabled = true;
             });

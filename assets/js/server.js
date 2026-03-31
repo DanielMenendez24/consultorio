@@ -122,6 +122,38 @@ app.get('/medico/:ci', (req, res) => {
     });
 });
 
+app.get('/especialidad', (req, res) => {
+    const sql = 'SELECT DISTINCT especialidad FROM medico ORDER BY especialidad';
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error en consulta SQL:', err);
+            return res.status(500).json({ error: 'Error de base de datos' });
+        }
+        res.json(result.map(row => row.especialidad));
+    });
+});
+
+app.get('/medico/especialidad/:especialidad', (req, res) => {
+    const sql = `
+        SELECT 
+            m.ci, 
+            CONCAT(p.apellidoP, ', ', p.nombreP) AS nombre,
+            m.nroLicencia
+        FROM medico m
+        JOIN persona p ON m.ci = p.ci
+        WHERE m.especialidad = ?
+        ORDER BY p.apellidoP, p.nombreP
+    `;
+    const especialidad = req.params.especialidad;
+    pool.query(sql, [especialidad], (err, result) => {
+        if (err) {
+            console.error('Error en consulta SQL:', err);
+            return res.status(500).json({ error: 'Error de base de datos' });
+        }
+        res.json(result);
+    });
+});
+
 app.get('/turno', (req, res) => {
     const sql = `
         SELECT 
