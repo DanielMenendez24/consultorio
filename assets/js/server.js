@@ -168,6 +168,70 @@ app.get('/turno/:ci', (req, res) => {
     });
 });
 
+app.post('/paciente', (req, res) => {
+    const { ci, nombre, apellido, fechaNacimiento, sexo, departamento, ciudad, barrio, calle, numeroPuerta, tipoSangre, telPersona } = req.body;
+
+    pool.getConnection((err, connection) => {
+        if (err) {
+            console.error('Database connection failed:', err);
+            return res.status(500).json({ error: 'Database connection failed' });
+        }
+
+        connection.beginTransaction(err => {
+            if (err) {
+                connection.release();
+                console.error('Transaction start failed:', err);
+                return res.status(500).json({ error: 'Transaction start failed' });
+            }
+
+            const sqlPersona = `INSERT INTO persona (ci, nombreP, apellidoP, fechaNac, sexo, departamento, ciudad, barrio, calle, nroApartamento) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            connection.query(sqlPersona, [ci, nombre, apellido, fechaNacimiento, sexo, departamento, ciudad, barrio, calle, numeroPuerta], (err, result) => {
+                if (err) {
+                    return connection.rollback(() => {
+                        connection.release();
+                        console.error('Error inserting into persona:', err);
+                        res.status(500).json({ error: 'Error inserting into persona', details: err.message });
+                    });
+                }
+
+                const sqlTel = `INSERT INTO tel_persona (telefono, ci) VALUES (?, ?)`;
+                connection.query(sqlTel, [telPersona, ci], (err, result) => {
+                    if (err) {
+                        return connection.rollback(() => {
+                            connection.release();
+                            console.error('Error inserting into tel_persona:', err);
+                            res.status(500).json({ error: 'Error inserting into tel_persona', details: err.message });
+                        });
+                    }
+
+                    const sqlPaciente = `INSERT INTO paciente (idPaciente, ci, tipoSangre) VALUES (0, ?, ?)`;
+                    connection.query(sqlPaciente, [ci, tipoSangre], (err, result) => {
+                        if (err) {
+                            return connection.rollback(() => {
+                                connection.release();
+                                console.error('Error inserting into paciente:', err);
+                                res.status(500).json({ error: 'Error inserting into paciente', details: err.message });
+                            });
+                        }
+
+                        connection.commit(err => {
+                            if (err) {
+                                return connection.rollback(() => {
+                                    connection.release();
+                                    console.error('Transaction commit failed:', err);
+                                    res.status(500).json({ error: 'Transaction commit failed' });
+                                });
+                            }
+                            connection.release();
+                            res.status(201).json({ message: 'Paciente registrado exitosamente' });
+                        });
+                    });
+                });
+            });
+        });
+    });
+});
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 });

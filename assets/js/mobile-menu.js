@@ -16,6 +16,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // If it's a dropdown link, toggle the active class
                 if (nextEl && nextEl.classList.contains('dropdown-menu')) {
                     e.preventDefault();
+                    
+                    // Close other active dropdowns
+                    document.querySelectorAll('.dropdown.active').forEach(d => {
+                        if (d !== link.parentElement) {
+                            d.classList.remove('active');
+                        }
+                    });
+                    
                     link.parentElement.classList.toggle('active');
                 } else {
                     // Close the entire menu if non-dropdown link is clicked

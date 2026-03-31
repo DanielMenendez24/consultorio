@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrar pacientes | La Segunda Opción</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo-small">
+                <span class="logo-icon">
+                    <img src="../assets/img/lasegundaopcion_logo.png" alt="Logo La Segunda Opción">
+                </span>
+                <span>La Segunda Opción</span>
+            </div>
+            <button class="menu-toggle" aria-label="Abrir menú">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+            <ul>
+                <li><a href="consultorio.html">Inicio</a></li>
+                <li class="dropdown">
+                    <a href="#">Listar</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="list_pacientes.html">Pacientes</a></li>
+                        <li><a href="list_medicos.html">Médicos</a></li>
+                        <li><a href="list_turnos.html">Turnos</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="active">Registrar</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="reg_pacientes.html">Pacientes</a></li>
+                        <li><a href="reg_medicos.html">Médicos</a></li>
+                        <li><a href="reg_turnos.html">Turnos</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#">Actualizar</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="upd_pacientes.html">Pacientes</a></li>
+                        <li><a href="upd_medicos.html">Médicos</a></li>
+                        <li><a href="upd_turnos.html">Turnos</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown">
+                    <a href="#">Eliminar</a>
+                    <ul class="dropdown-menu">
+                        <li><a href="del_pacientes.html">Pacientes</a></li>
+                        <li><a href="del_medicos.html">Médicos</a></li>
+                        <li><a href="del_turnos.html">Turnos</a></li>
+                    </ul>
+                </li>
+                <li><a href="../index.html">Cerrar Sesión</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section class="form-section" style="padding: 2rem; max-width: 900px; margin: 0 auto; margin-top: 4rem;">
+            <div class="glass-card">
+                <h2 class="section-title">Registrar Nuevo Paciente</h2>
+                <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Los campos marcados con * son obligatorios.</p>
+                <form id="form-reg-paciente">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="ci">Documento de Identidad (CI)*</label>
+                            <div class="input-container">
+                                <input type="text" id="ci" name="ci" placeholder="12345678" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="nombre">Nombre*</label>
+                            <div class="input-container">
+                                <input type="text" id="nombre" name="nombre" placeholder="Juan" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="apellido">Apellido*</label>
+                            <div class="input-container">
+                                <input type="text" id="apellido" name="apellido" placeholder="Perez" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="fechaNacimiento">Fecha de nacimiento*</label>
+                            <div class="input-container">
+                                <input type="date" id="fechaNacimiento" name="fechaNacimiento" style="padding-left: 2.8rem;" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="sexo">Sexo*</label>
+                            <select id="sexo" name="sexo" required>
+                                <option value="" disabled selected>Seleccione el sexo...</option>
+                                <option value="Masculino">Masculino</option>
+                                <option value="Femenino">Femenino</option>
+                                <option value="Otro">Otro/Prefiero no decirlo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="departamento">Departamento*</label>
+                            <select id="departamento" name="departamento" required>
+                                <option value="" disabled selected>Seleccione un departamento...</option>
+                                <option value="Montevideo">Montevideo</option>
+                                <option value="Artigas">Artigas</option>
+                                <option value="Canelones">Canelones</option>
+                                <option value="Cerro Largo">Cerro Largo</option>
+                                <option value="Colonia">Colonia</option>
+                                <option value="Durazno">Durazno</option>
+                                <option value="Flores">Flores</option>
+                                <option value="Florida">Florida</option>
+                                <option value="Lavalleja">Lavalleja</option>
+                                <option value="Maldonado">Maldonado</option>
+                                <option value="Paysandú">Paysandú</option>
+                                <option value="Río Negro">Río Negro</option>
+                                <option value="Rivera">Rivera</option>
+                                <option value="Rocha">Rocha</option>
+                                <option value="Salto">Salto</option>
+                                <option value="San José">San José</option>
+                                <option value="Soriano">Soriano</option>
+                                <option value="Tacuarembó">Tacuarembó</option>
+                                <option value="Treinta y Tres">Treinta y Tres</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ciudad">Ciudad*</label>
+                            <div class="input-container">
+                                <input type="text" id="ciudad" name="ciudad" placeholder="Springfield" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="barrio">Barrio</label>
+                            <div class="input-container">
+                                <input type="text" id="barrio" name="barrio" placeholder="Centro">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="calle">Calle*</label>
+                            <div class="input-container">
+                                <input type="text" id="calle" name="calle" placeholder="Siempre Viva" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="numeroPuerta">Número de Puerta*</label>
+                            <div class="input-container">
+                                <input type="text" id="numeroPuerta" name="numeroPuerta" placeholder="742" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="telPersona">Teléfono de contacto*</label>
+                            <div class="input-container">
+                                <input type="text" id="telPersona" name="telPersona" placeholder="099 123 456" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="tipoSangre">Tipo de Sangre*</label>
+                            <select id="tipoSangre" name="tipoSangre" required>
+                                <option value="" disabled selected>Seleccione...</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="No sabe">No sabe</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions" style="margin-top: 2rem; justify-content: flex-end;">
+                        <button type="submit" class="btn-primary" style="max-width: 250px;">Registrar Paciente</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>La Segunda Opción | El lugar donde Google viene a confirmar sus dudas.<br>
+            Todos los derechos reservados &copy; 2026</p>
+    </footer>
+    <script src="../assets/js/mobile-menu.js"></script>
+    <script src="../assets/js/validation.js"></script>
+    <script src="../assets/js/reg_paciente.js"></script>
+</body>
+</html>

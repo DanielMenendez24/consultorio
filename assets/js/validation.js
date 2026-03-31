@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const password = document.getElementById('password').value;
 
             if (username === 'admin' && password === 'admin') {
-                window.location.href = 'consultorio.html';
+                window.location.href = 'pages/consultorio.html';
             } else {
                 alert('Usuario o contraseña incorrectos');
             }
