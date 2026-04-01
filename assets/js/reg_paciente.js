@@ -4,15 +4,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (form) {
         const btnModificar = document.getElementById('btn-modificar');
+        const btnEliminar = document.getElementById('btn-eliminar');
         const ciInput = document.getElementById('ci');
+        const ciContainer = document.getElementById('ci-container');
+        const ciError = document.getElementById('ci-error');
+
+        const showCiError = () => {
+            if (ciContainer) ciContainer.classList.add('has-error');
+            if (ciError) ciError.style.display = 'block';
+        };
+        const clearCiError = () => {
+            if (ciContainer) ciContainer.classList.remove('has-error');
+            if (ciError) ciError.style.display = 'none';
+        };
 
         if (ciInput) {
             ciInput.addEventListener('input', () => {
+                clearCiError();
                 if (btnModificar) btnModificar.disabled = true;
+                if (btnEliminar) btnEliminar.disabled = true;
             });
 
             ciInput.addEventListener('blur', async () => {
-                const ci = ciInput.value;
+                const ci = ciInput.value.trim();
+
+                if (ci && typeof esCedulaValida === 'function' && !esCedulaValida(ci)) {
+                    showCiError();
+                    return;
+                }
+                clearCiError();
+
                 if (ci.length >= 7) {
                     try {
                         const response = await fetch(`http://localhost:3000/persona/${ci}`);
@@ -27,18 +48,33 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const formattedDate = date.toISOString().split('T')[0];
                                     document.getElementById('fechaNacimiento').value = formattedDate;
                                 }
-                                document.getElementById('sexo').value = person.sexo || '';
+                                if (person.sexo) {
+                                    form.elements['sexo'].value = person.sexo;
+                                }
                                 document.getElementById('departamento').value = person.departamento || '';
                                 document.getElementById('ciudad').value = person.ciudad || '';
                                 document.getElementById('barrio').value = person.barrio || '';
                                 document.getElementById('calle').value = person.calle || '';
                                 document.getElementById('numeroPuerta').value = person.nroApartamento || '';
-                                document.getElementById('telPersona').value = person.telefono || '';
+                                document.getElementById('telPersona').value = person.telefonos || person.telefono || '';
                                 if (person.tipoSangre) {
-                                    document.getElementById('tipoSangre').value = person.tipoSangre;
+                                    form.elements['tipoSangre'].value = person.tipoSangre;
+                                }
+                                if (person.estado) {
+                                    document.getElementById('estado').value = person.estado;
+                                    if (person.estado === 'Baja') {
+                                        btnEliminar.textContent = 'Dar de Alta Paciente';
+                                        btnEliminar.style.backgroundColor = '#10b981';
+                                        btnEliminar.style.borderColor = '#10b981';
+                                    } else {
+                                        btnEliminar.textContent = 'Eliminar Paciente';
+                                        btnEliminar.style.backgroundColor = 'var(--error-color, #ef4444)';
+                                        btnEliminar.style.borderColor = 'var(--error-color, #ef4444)';
+                                    }
                                 }
 
                                 if (btnModificar) btnModificar.disabled = false;
+                                if (btnEliminar) btnEliminar.disabled = false;
 
                                 // Store original data for diffing
                                 originalData = {
@@ -52,8 +88,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     barrio: person.barrio || '',
                                     calle: person.calle || '',
                                     numeroPuerta: person.nroApartamento || '',
-                                    telPersona: person.telefono || '',
-                                    tipoSangre: person.tipoSangre || ''
+                                    telPersona: person.telefonos || person.telefono || '',
+                                    tipoSangre: person.tipoSangre || '',
+                                    estado: person.estado || 'Alta'
                                 };
                             }
                         }
@@ -72,14 +109,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     nombre: document.getElementById('nombre').value,
                     apellido: document.getElementById('apellido').value,
                     fechaNacimiento: document.getElementById('fechaNacimiento').value,
-                    sexo: document.getElementById('sexo').value,
+                    sexo: form.elements['sexo'].value,
                     departamento: document.getElementById('departamento').value,
                     ciudad: document.getElementById('ciudad').value,
                     barrio: document.getElementById('barrio').value,
                     calle: document.getElementById('calle').value,
                     numeroPuerta: document.getElementById('numeroPuerta').value,
                     telPersona: document.getElementById('telPersona').value,
-                    tipoSangre: document.getElementById('tipoSangre').value
+                    tipoSangre: form.elements['tipoSangre'].value
                 };
 
                 // Filter only changed fields
@@ -117,22 +154,82 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        if (btnEliminar) {
+            btnEliminar.addEventListener('click', async () => {
+                const ciValue = ciInput.value;
+                if (!ciValue) return;
+
+                const isBaja = document.getElementById('estado').value === 'Baja';
+
+                if (isBaja) {
+                    if (confirm(`¿Desea dar de ALTA nuevamente al paciente con CI ${ciValue}?`)) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/paciente/reactivar/${ciValue}`, {
+                                method: 'PATCH'
+                            });
+                            if (response.ok) {
+                                alert('¡Paciente reactivado con éxito!');
+                                form.reset();
+                                document.getElementById('estado').value = 'Alta';
+                                btnEliminar.textContent = 'Eliminar Paciente';
+                                btnEliminar.style.backgroundColor = 'var(--error-color, #ef4444)';
+                                btnEliminar.style.borderColor = 'var(--error-color, #ef4444)';
+                                originalData = null;
+                                if (btnModificar) btnModificar.disabled = true;
+                                if (btnEliminar) btnEliminar.disabled = true;
+                            } else {
+                                const error = await response.json();
+                                alert(`Error: ${error.error || 'Desconocido'}`);
+                            }
+                        } catch (err) { alert('Error al conectar con el servidor.'); }
+                    }
+                } else {
+                    if (confirm(`¿Está seguro que desea dar de BAJA al paciente con CI ${ciValue}? Esto cambiará su estado a 'Baja'.`)) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/paciente/${ciValue}`, {
+                                method: 'DELETE'
+                            });
+
+                            if (response.ok) {
+                                alert('¡Paciente dado de baja con éxito!');
+                                form.reset();
+                                document.getElementById('estado').value = 'Alta';
+                                originalData = null;
+                                if (btnModificar) btnModificar.disabled = true;
+                                if (btnEliminar) btnEliminar.disabled = true;
+                            } else {
+                                const error = await response.json();
+                                alert(`Error al eliminar: ${error.details || error.error || 'Desconocido'}`);
+                            }
+                        } catch (err) { alert('Error al conectar con el servidor.'); }
+                    }
+                }
+            });
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+
+            const ciValue = document.getElementById('ci').value.trim();
+            if (typeof esCedulaValida === 'function' && !esCedulaValida(ciValue)) {
+                showCiError();
+                document.getElementById('ci').focus();
+                return;
+            }
 
             const formData = {
                 ci: document.getElementById('ci').value,
                 nombre: document.getElementById('nombre').value,
                 apellido: document.getElementById('apellido').value,
                 fechaNacimiento: document.getElementById('fechaNacimiento').value,
-                sexo: document.getElementById('sexo').value,
+                sexo: form.elements['sexo'].value,
                 departamento: document.getElementById('departamento').value,
                 ciudad: document.getElementById('ciudad').value,
                 barrio: document.getElementById('barrio').value,
                 calle: document.getElementById('calle').value,
                 numeroPuerta: document.getElementById('numeroPuerta').value,
                 telPersona: document.getElementById('telPersona').value,
-                tipoSangre: document.getElementById('tipoSangre').value
+                tipoSangre: form.elements['tipoSangre'].value
             };
 
             try {
@@ -147,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     const result = await response.json();
                     alert('¡Paciente registrado con éxito!');
-                    form.reset(); 
+                    form.reset();
                     originalData = null; // Clear original data
                 } else {
                     const error = await response.json();

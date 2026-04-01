@@ -1,3 +1,17 @@
+// ─── CI Validation (global) ─────────────────────────────────────────────────
+function esCedulaValida(ci) {
+    ci = ci.replace(/\D/g, '');
+    if (ci.length !== 7 && ci.length !== 8) return false;
+    const todosIguales = ci.split('').every(char => char === ci[0]);
+    if (todosIguales) return false;
+    if (ci.length === 7) ci = '0' + ci;
+    const factores = [2, 9, 8, 7, 6, 3, 4];
+    let suma = 0;
+    for (let i = 0; i < 7; i++) suma += parseInt(ci[i]) * factores[i];
+    const dvCalculado = (10 - (suma % 10)) % 10;
+    return dvCalculado === parseInt(ci[7]);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
 
@@ -27,37 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Función para validar la Cédula de Identidad Uruguaya usando dígito verificador
-    function esCedulaValida(ci) {
-        // Remover cualquier caracter que no sea número
-        ci = ci.replace(/\D/g, '');
-        
-        // La CI uruguaya debe tener 7 u 8 dígitos
-        if (ci.length !== 7 && ci.length !== 8) return false;
-        
-        // Verifica que no sean todos los números iguales (ej: 11111111)
-        const todosIguales = ci.split('').every(char => char === ci[0]);
-        if (todosIguales) return false;
-
-        // Si tiene 7 dígitos, rellenar con un 0 a la izquierda
-        if (ci.length === 7) {
-            ci = '0' + ci;
-        }
-
-        const factores = [2, 9, 8, 7, 6, 3, 4];
-        let suma = 0;
-
-        // Sumar cada dígito multiplicado por su factor
-        for (let i = 0; i < 7; i++) {
-            suma += parseInt(ci[i]) * factores[i];
-        }
-
-        // Calcular dígito verificador
-        const digitoVerificadorCalculado = (10 - (suma % 10)) % 10;
-        const digitoVerificadorReal = parseInt(ci[7]);
-
-        return digitoVerificadorCalculado === digitoVerificadorReal;
-    }
 
     if (searchBtn && searchInput) {
         searchBtn.addEventListener('click', (e) => {

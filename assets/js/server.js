@@ -31,11 +31,13 @@ app.get('/paciente', (req, res) => {
             persona.sexo,
             persona.fechaNac,
             CONCAT(persona.departamento, ', ', persona.ciudad, ', ', persona.barrio, ', ', persona.calle, ' ', persona.nroApartamento) AS Direccion,
-            t.telefono,
-            p.tipoSangre
+            GROUP_CONCAT(t.telefono SEPARATOR ', ') AS telefono,
+            p.tipoSangre,
+            p.estado
         FROM paciente p
         JOIN persona on p.ci = persona.ci
         LEFT JOIN tel_persona t ON p.ci = t.ci
+        GROUP BY p.idPaciente, p.ci, persona.apellidoP, persona.nombreP, persona.sexo, persona.fechaNac, persona.departamento, persona.ciudad, persona.barrio, persona.calle, persona.nroApartamento, p.tipoSangre, p.estado
     `;
     pool.query(sql, (err, result) => {
         if (err) {
@@ -55,12 +57,14 @@ app.get('/paciente/:ci', (req, res) => {
             persona.sexo,
             persona.fechaNac,
             CONCAT(persona.departamento, ', ', persona.ciudad, ', ', persona.barrio, ', ', persona.calle, ' ', persona.nroApartamento) AS Direccion,
-            t.telefono,
-            p.tipoSangre
+            GROUP_CONCAT(t.telefono SEPARATOR ', ') AS telefono,
+            p.tipoSangre,
+            p.estado
         FROM paciente p
         JOIN persona on p.ci = persona.ci
         LEFT JOIN tel_persona t ON p.ci = t.ci
         WHERE p.ci = ?
+        GROUP BY p.idPaciente, p.ci, persona.apellidoP, persona.nombreP, persona.sexo, persona.fechaNac, persona.departamento, persona.ciudad, persona.barrio, persona.calle, persona.nroApartamento, p.tipoSangre, p.estado
     `;
     const ci = req.params.ci;
     pool.query(sql, [ci], (err, result) => {
@@ -81,11 +85,13 @@ app.get('/medico', (req, res) => {
             persona.sexo,
             persona.fechaNac,
             CONCAT(persona.departamento, ', ', persona.ciudad, ', ', persona.barrio, ', ', persona.calle, ' ', persona.nroApartamento) AS Direccion,
-            t.telefono,
-            m.especialidad
+            GROUP_CONCAT(t.telefono SEPARATOR ', ') AS telefono,
+            m.especialidad,
+            m.estado
         FROM medico m
         JOIN persona on m.ci = persona.ci
         LEFT JOIN tel_persona t ON m.ci = t.ci
+        GROUP BY m.nroLicencia, m.ci, persona.apellidoP, persona.nombreP, persona.sexo, persona.fechaNac, persona.departamento, persona.ciudad, persona.barrio, persona.calle, persona.nroApartamento, m.especialidad, m.estado
     `;
     pool.query(sql, (err, result) => {
         if (err) {
@@ -105,12 +111,14 @@ app.get('/medico/:ci', (req, res) => {
             persona.sexo,
             persona.fechaNac,
             CONCAT(persona.departamento, ', ', persona.ciudad, ', ', persona.barrio, ', ', persona.calle, ' ', persona.nroApartamento) AS Direccion,
-            t.telefono,
-            m.especialidad
+            GROUP_CONCAT(t.telefono SEPARATOR ', ') AS telefono,
+            m.especialidad,
+            m.estado
         FROM medico m
         JOIN persona on m.ci = persona.ci
         LEFT JOIN tel_persona t ON m.ci = t.ci
         WHERE m.ci = ?
+        GROUP BY m.nroLicencia, m.ci, persona.apellidoP, persona.nombreP, persona.sexo, persona.fechaNac, persona.departamento, persona.ciudad, persona.barrio, persona.calle, persona.nroApartamento, m.especialidad, m.estado
     `;
     const ci = req.params.ci;
     pool.query(sql, [ci], (err, result) => {
@@ -210,12 +218,14 @@ app.get('/turno/:ci', (req, res) => {
 
 app.get('/persona/:ci', (req, res) => {
     const sql = `
-        SELECT p.*, t.telefono, pac.tipoSangre, med.especialidad
+        SELECT p.*, GROUP_CONCAT(t.telefono SEPARATOR ', ') AS telefonos, pac.tipoSangre, med.especialidad, 
+               COALESCE(pac.estado, med.estado) AS estado
         FROM persona p 
         LEFT JOIN tel_persona t ON p.ci = t.ci 
         LEFT JOIN paciente pac ON p.ci = pac.ci
         LEFT JOIN medico med ON p.ci = med.ci
         WHERE p.ci = ?
+        GROUP BY p.ci, pac.tipoSangre, med.especialidad, pac.estado, med.estado
     `;
     const ci = req.params.ci;
     pool.query(sql, [ci], (err, result) => {
@@ -271,7 +281,7 @@ app.post('/paciente', (req, res) => {
                             });
                         }
 
-                        const sqlPaciente = `INSERT INTO paciente (idPaciente, ci, tipoSangre) VALUES (0, ?, ?)`;
+                        const sqlPaciente = `INSERT INTO paciente (idPaciente, ci, tipoSangre, estado) VALUES (0, ?, ?, 'Alta')`;
                         connection.query(sqlPaciente, [ci, tipoSangre], (err, result) => {
                             if (err) {
                                 return connection.rollback(() => {
@@ -306,16 +316,22 @@ app.post('/paciente', (req, res) => {
                             });
                         }
 
-                        const sqlTel = `INSERT INTO tel_persona (telefono, ci) VALUES (?, ?)`;
-                        connection.query(sqlTel, [telPersona, ci], (err, result) => {
-                            if (err) {
-                                return connection.rollback(() => {
-                                    connection.release();
-                                    res.status(500).json({ error: 'Error al insertar teléfono', details: err.message });
-                                });
-                            }
+                        const phones = (telPersona || '').split(',').map(p => p.trim()).filter(p => p.length > 0);
+                        if (phones.length > 0) {
+                            const phoneValues = phones.map(p => [p, ci]);
+                            const sqlTel = `INSERT INTO tel_persona (telefono, ci) VALUES ?`;
+                            connection.query(sqlTel, [phoneValues], (err) => {
+                                if (err) {
+                                    return connection.rollback(() => {
+                                        connection.release();
+                                        res.status(500).json({ error: 'Error al insertar teléfonos', details: err.message });
+                                    });
+                                }
+                                finishRegistration();
+                            });
+                        } else {
                             finishRegistration();
-                        });
+                        }
                     });
                 }
             });
@@ -367,7 +383,7 @@ app.post('/medico', (req, res) => {
                             });
                         }
 
-                        const sqlMedico = `INSERT INTO medico (nroLicencia, ci, especialidad) VALUES (0, ?, ?)`;
+                        const sqlMedico = `INSERT INTO medico (nroLicencia, ci, especialidad, estado) VALUES (0, ?, ?, 'Alta')`;
                         connection.query(sqlMedico, [ci, especialidad], (err, result) => {
                             if (err) {
                                 return connection.rollback(() => {
@@ -402,16 +418,22 @@ app.post('/medico', (req, res) => {
                             });
                         }
 
-                        const sqlTel = `INSERT INTO tel_persona (telefono, ci) VALUES (?, ?)`;
-                        connection.query(sqlTel, [telPersona, ci], (err, result) => {
-                            if (err) {
-                                return connection.rollback(() => {
-                                    connection.release();
-                                    res.status(500).json({ error: 'Error al insertar teléfono', details: err.message });
-                                });
-                            }
+                        const phones = (telPersona || '').split(',').map(p => p.trim()).filter(p => p.length > 0);
+                        if (phones.length > 0) {
+                            const phoneValues = phones.map(p => [p, ci]);
+                            const sqlTel = `INSERT INTO tel_persona (telefono, ci) VALUES ?`;
+                            connection.query(sqlTel, [phoneValues], (err) => {
+                                if (err) {
+                                    return connection.rollback(() => {
+                                        connection.release();
+                                        res.status(500).json({ error: 'Error al insertar teléfonos', details: err.message });
+                                    });
+                                }
+                                finishRegistration();
+                            });
+                        } else {
                             finishRegistration();
-                        });
+                        }
                     });
                 }
             });
@@ -453,12 +475,17 @@ app.put('/paciente/:ci', (req, res) => {
             };
 
             const updateTel = (callback) => {
-                const telFields = {};
-                if (data.telPersona) telFields.telefono = data.telPersona;
-                if (data.ci) telFields.ci = data.ci;
-
-                if (Object.keys(telFields).length > 0) {
-                    connection.query('UPDATE tel_persona SET ? WHERE ci = ?', [telFields, originalCi], callback);
+                if (data.telPersona !== undefined) {
+                    connection.query('DELETE FROM tel_persona WHERE ci = ?', [originalCi], (err) => {
+                        if (err) return callback(err);
+                        const phones = data.telPersona.split(',').map(p => p.trim()).filter(p => p.length > 0);
+                        if (phones.length > 0) {
+                            const phoneValues = phones.map(p => [p, data.ci || originalCi]);
+                            connection.query('INSERT INTO tel_persona (telefono, ci) VALUES ?', [phoneValues], callback);
+                        } else {
+                            callback(null);
+                        }
+                    });
                 } else {
                     callback(null);
                 }
@@ -482,7 +509,7 @@ app.put('/paciente/:ci', (req, res) => {
                     if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating phone', details: err.message }); });
                     updatePaciente((err) => {
                         if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating paciente', details: err.message }); });
-                        
+
                         connection.commit(err => {
                             if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Commit failed' }); });
                             connection.release();
@@ -529,12 +556,17 @@ app.put('/medico/:ci', (req, res) => {
             };
 
             const updateTel = (callback) => {
-                const telFields = {};
-                if (data.telPersona) telFields.telefono = data.telPersona;
-                if (data.ci) telFields.ci = data.ci;
-
-                if (Object.keys(telFields).length > 0) {
-                    connection.query('UPDATE tel_persona SET ? WHERE ci = ?', [telFields, originalCi], callback);
+                if (data.telPersona !== undefined) {
+                    connection.query('DELETE FROM tel_persona WHERE ci = ?', [originalCi], (err) => {
+                        if (err) return callback(err);
+                        const phones = data.telPersona.split(',').map(p => p.trim()).filter(p => p.length > 0);
+                        if (phones.length > 0) {
+                            const phoneValues = phones.map(p => [p, data.ci || originalCi]);
+                            connection.query('INSERT INTO tel_persona (telefono, ci) VALUES ?', [phoneValues], callback);
+                        } else {
+                            callback(null);
+                        }
+                    });
                 } else {
                     callback(null);
                 }
@@ -558,7 +590,7 @@ app.put('/medico/:ci', (req, res) => {
                     if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating phone', details: err.message }); });
                     updateMedico((err) => {
                         if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating medico', details: err.message }); });
-                        
+
                         connection.commit(err => {
                             if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Commit failed' }); });
                             connection.release();
@@ -578,27 +610,33 @@ app.post('/turno', (req, res) => {
     pool.query('SELECT idPaciente FROM paciente WHERE ci = ?', [ciPaciente], (err, pResult) => {
         if (err) return res.status(500).json({ error: 'Error de base de datos (Paciente)' });
         if (pResult.length === 0) return res.status(404).json({ error: 'No existe un paciente con esa CI' });
-        
+
         const idPaciente = pResult[0].idPaciente;
 
         // 2. Get nroLicencia from CI
         pool.query('SELECT nroLicencia FROM medico WHERE ci = ?', [ciMedico], (err, mResult) => {
             if (err) return res.status(500).json({ error: 'Error de base de datos (Médico)' });
             if (mResult.length === 0) return res.status(404).json({ error: 'No existe un médico con esa CI' });
-            
+
             const nroLicencia = mResult[0].nroLicencia;
 
-            // 3. Insert into consulta
+            // 3. Insert into consulta (Always default to Pendiente)
+
+
             const sql = `INSERT INTO consulta (fechaConsulta, horaConsulta, idPaciente, nroLicencia, motivoConsulta, observaciones, estado) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?)`;
-            pool.query(sql, [fecha, hora, idPaciente, nroLicencia, motivo, observaciones, estado], (err, result) => {
+
+
+                         VALUES (?, ?, ?, ?, ?, ?, 'Pendiente')`;
+
+
+            pool.query(sql, [fecha, hora, idPaciente, nroLicencia, motivo, observaciones], (err, result) => {
                 if (err) {
                     console.error('Error al registrar turno:', err);
                     return res.status(500).json({ error: 'Error al registrar turno', details: err.message });
                 }
-                res.status(201).json({ 
-                    message: 'Turno registrado exitosamente', 
-                    idConsulta: result.insertId 
+                res.status(201).json({
+                    message: 'Turno registrado exitosamente',
+                    idConsulta: result.insertId
                 });
             });
         });
@@ -641,6 +679,64 @@ app.put('/turno/:id', (req, res) => {
     pool.query('UPDATE consulta SET ? WHERE idConsulta = ?', [fields, id], (err, result) => {
         if (err) return res.status(500).json({ error: 'Error al actualizar turno', details: err.message });
         res.status(200).json({ message: 'Turno actualizado con éxito' });
+    });
+});
+
+app.delete('/paciente/:ci', (req, res) => {
+    const ci = req.params.ci;
+    pool.query("UPDATE paciente SET estado = 'Baja' WHERE ci = ?", [ci], (err, result) => {
+        if (err) {
+            console.error('Error al dar de baja al paciente:', err);
+            return res.status(500).json({ error: 'Error al dar de baja al paciente', details: err.message });
+        }
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'No se encontró el paciente' });
+        res.status(200).json({ message: 'Paciente dado de baja con éxito' });
+    });
+});
+
+app.patch('/paciente/reactivar/:ci', (req, res) => {
+    const ci = req.params.ci;
+    pool.query("UPDATE paciente SET estado = 'Alta' WHERE ci = ?", [ci], (err, result) => {
+        if (err) {
+            console.error('Error al dar de alta al paciente:', err);
+            return res.status(500).json({ error: 'Error al dar de alta al paciente', details: err.message });
+        }
+        res.status(200).json({ message: 'Paciente reactivado con éxito' });
+    });
+});
+
+app.delete('/medico/:ci', (req, res) => {
+    const ci = req.params.ci;
+    pool.query("UPDATE medico SET estado = 'Baja' WHERE ci = ?", [ci], (err, result) => {
+        if (err) {
+            console.error('Error al dar de baja al médico:', err);
+            return res.status(500).json({ error: 'Error al dar de baja al médico', details: err.message });
+        }
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'No se encontró el médico' });
+        res.status(200).json({ message: 'Médico dado de baja con éxito' });
+    });
+});
+
+app.patch('/medico/reactivar/:ci', (req, res) => {
+    const ci = req.params.ci;
+    pool.query("UPDATE medico SET estado = 'Alta' WHERE ci = ?", [ci], (err, result) => {
+        if (err) {
+            console.error('Error al dar de alta al médico:', err);
+            return res.status(500).json({ error: 'Error al dar de alta al médico', details: err.message });
+        }
+        res.status(200).json({ message: 'Médico reactivado con éxito' });
+    });
+});
+
+app.delete('/turno/:id', (req, res) => {
+    const id = req.params.id;
+    pool.query("UPDATE consulta SET estado = 'Cancelada' WHERE idConsulta = ?", [id], (err, result) => {
+        if (err) {
+            console.error('Error al cancelar turno:', err);
+            return res.status(500).json({ error: 'Error al cancelar turno', details: err.message });
+        }
+        if (result.affectedRows === 0) return res.status(404).json({ error: 'No se encontró el turno' });
+        res.status(200).json({ message: 'Turno cancelado con éxito' });
     });
 });
 

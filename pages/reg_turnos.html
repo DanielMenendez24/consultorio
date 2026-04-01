@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar Turnos | La Segunda Opción</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
+
 <body>
     <header>
         <nav>
@@ -49,31 +53,39 @@
         <section class="form-section" style="padding: 2rem; max-width: 900px; margin: 0 auto; margin-top: 4rem;">
             <div class="glass-card">
                 <button type="reset" form="form-reg-turno" class="btn-clear-form" title="Vaciar todos los campos">
-                    <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></i>
+                    <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></i>
                     Vaciar campos
                 </button>
                 <h2 class="section-title">Registrar Nuevo Turno</h2>
-                <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Cree una nueva cita médica seleccionando una especialidad y un médico disponible.</p>
+                <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Cree una nueva cita
+                    médica seleccionando una especialidad y un médico disponible.</p>
                 <form id="form-reg-turno">
                     <div class="form-grid">
                         <!-- Paciente -->
                         <div class="form-group">
                             <label for="ciPaciente">CI del Paciente*</label>
                             <div class="input-container">
-                                <input type="text" id="ciPaciente" name="ciPaciente" placeholder="Ej: 49797260" required>
+                                <input type="text" id="ciPaciente" name="ciPaciente" placeholder="Ej: 49797260"
+                                    required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="nombrePaciente">Nombre del Paciente</label>
                             <div class="input-container">
-                                <input type="text" id="nombrePaciente" name="nombrePaciente" placeholder="Se completará solo..." readonly style="background: rgba(255,255,255,0.05);">
+                                <input type="text" id="nombrePaciente" name="nombrePaciente"
+                                    placeholder="Se completará solo..." readonly
+                                    style="background: rgba(255,255,255,0.05);">
                             </div>
                         </div>
 
                         <!-- Médico -->
                         <div class="form-group">
                             <label for="especialidad">Especialidad*</label>
-                            <div class="input-container">
+                            <div class="custom-select-wrapper">
                                 <select id="especialidad" name="especialidad" required>
                                     <option value="" disabled selected>Seleccione especialidad...</option>
                                 </select>
@@ -81,7 +93,7 @@
                         </div>
                         <div class="form-group">
                             <label for="ciMedico">Médico*</label>
-                            <div class="input-container">
+                            <div class="custom-select-wrapper">
                                 <select id="ciMedico" name="ciMedico" required disabled>
                                     <option value="" disabled selected>Seleccione especialidad primero...</option>
                                 </select>
@@ -91,43 +103,51 @@
                         <!-- Datos de la Cita -->
                         <div class="form-group">
                             <label for="fecha">Fecha de la Consulta*</label>
-                            <div class="input-container">
+                            <div class="input-container" id="fecha-container">
                                 <input type="date" id="fecha" name="fecha" required>
                             </div>
+                            <span class="field-error-msg" id="fecha-error">La fecha no puede ser anterior a hoy.</span>
                         </div>
                         <div class="form-group">
                             <label for="hora">Hora de la Consulta*</label>
-                            <div class="input-container">
-                                <input type="time" id="hora" name="hora" required>
+                            <div class="input-container" id="hora-container">
+                                <input type="time" id="hora" name="hora" min="07:00" max="20:00" required>
                             </div>
+                            <span class="field-error-msg" id="hora-error">El horario debe estar entre las 07:00 y las 20:00.</span>
                         </div>
 
                         <div class="form-group">
                             <label for="motivo">Motivo de la Consulta*</label>
                             <div class="input-container">
-                                <input type="text" id="motivo" name="motivo" placeholder="Ej: Dolor de garganta, Control anual" required>
+                                <input type="text" id="motivo" name="motivo"
+                                    placeholder="Ej: Dolor de garganta, Control anual" required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="estado">Estado del Turno*</label>
-                            <select id="estado" name="estado" required>
-                                <option value="Pendiente" selected>Pendiente</option>
-                                <option value="Confirmada">Confirmada</option>
-                                <option value="Realizada">Realizada</option>
-                                <option value="Cancelada">Cancelada</option>
-                            </select>
+                            <div class="input-container">
+                                <input type="text" id="estado" name="estado" value="Pendiente" readonly
+                                    style="background: rgba(255,255,255,0.05); color: var(--text-muted);">
+                            </div>
                         </div>
 
                         <div class="form-group" style="grid-column: span 2;">
                             <label for="observaciones">Observaciones adicionales</label>
                             <div class="input-container">
-                                <textarea id="observaciones" name="observaciones" rows="3" placeholder="Información relevante para el médico..."></textarea>
+                                <textarea id="observaciones" name="observaciones" rows="3"
+                                    placeholder="Información relevante para el médico..."></textarea>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="form-actions" style="margin-top: 2rem; justify-content: flex-end;">
-                        <button type="submit" class="btn-primary" style="max-width: 300px;">Registrar Turno</button>
+
+                    <div class="form-actions" style="margin-top: 2rem; justify-content: flex-end; gap: 1rem;">
+                        <button type="button" id="btn-eliminar" class="btn-secondary"
+                            style="max-width: 200px; color: #ef4444; border-color: #ef4444; display: none;">Eliminar
+                            Turno</button>
+                        <button type="button" id="btn-modificar" class="btn-secondary" style="max-width: 200px;"
+                            disabled>Modificar Turno</button>
+                        <button type="submit" id="btn-registrar" class="btn-primary" style="max-width: 250px;">Registrar
+                            Turno</button>
                     </div>
                 </form>
             </div>
@@ -140,4 +160,5 @@
     <script src="../assets/js/mobile-menu.js"></script>
     <script src="../assets/js/reg_turnos.js"></script>
 </body>
+
 </html>

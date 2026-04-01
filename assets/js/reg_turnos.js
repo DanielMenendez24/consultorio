@@ -5,11 +5,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const ciMedicoSelect = document.getElementById('ciMedico');
     const nombrePacienteInput = document.getElementById('nombrePaciente');
     const btnModificar = document.getElementById('btn-modificar');
+    const btnEliminar = document.getElementById('btn-eliminar');
     const fechaInput = document.getElementById('fecha');
 
     let currentTurnoId = null;
 
     if (form) {
+        // Set minimum date to today
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('fecha').setAttribute('min', todayStr);
+
         // --- Fetch Specialties on Load ---
         const fetchSpecialties = async () => {
             try {
@@ -43,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         ciMedicoSelect.appendChild(option);
                     });
                     ciMedicoSelect.disabled = false;
-                    
+
                     if (selectedCi) {
                         ciMedicoSelect.value = selectedCi;
                     }
@@ -71,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (data && data.length > 0) {
                             const turno = data[0];
                             currentTurnoId = turno.idConsulta;
-                            
+
                             // To set the doctor correctly, we first fetch their info to get their specialty
                             const docInfoResp = await fetch(`http://localhost:3000/persona/${turno.ciMedico}`);
                             if (docInfoResp.ok) {
@@ -87,11 +92,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             document.getElementById('motivo').value = turno.motivoConsulta;
                             document.getElementById('estado').value = turno.estado;
                             document.getElementById('observaciones').value = turno.observaciones || '';
-                            
+
                             if (btnModificar) btnModificar.disabled = false;
+                            if (btnEliminar) btnEliminar.style.display = 'block';
                         } else {
                             currentTurnoId = null;
                             if (btnModificar) btnModificar.disabled = true;
+                            if (btnEliminar) btnEliminar.style.display = 'none';
                         }
                     }
                 } catch (err) {
@@ -140,15 +147,77 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
+        // --- Date / Time validation helpers ---
+        const fechaContainer = document.getElementById('fecha-container');
+        const fechaError = document.getElementById('fecha-error');
+        const horaInput = document.getElementById('hora');
+        const horaContainer = document.getElementById('hora-container');
+        const horaError = document.getElementById('hora-error');
+
+        const showError = (container, span) => {
+            if (container) container.classList.add('has-error');
+            if (span) span.style.display = 'block';
+        };
+        const clearError = (container, span) => {
+            if (container) container.classList.remove('has-error');
+            if (span) span.style.display = 'none';
+        };
+
+        const isFechaValid = (val) => {
+            if (!val) return false;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return new Date(val + 'T00:00:00') >= today;
+        };
+
+        const isHoraValid = (val) => {
+            if (!val) return false;
+            const [h, m] = val.split(':').map(Number);
+            const minutes = h * 60 + m;
+            return minutes >= 7 * 60 && minutes <= 20 * 60;
+        };
+
+        fechaInput.addEventListener('change', () => {
+            if (!isFechaValid(fechaInput.value)) {
+                showError(fechaContainer, fechaError);
+            } else {
+                clearError(fechaContainer, fechaError);
+            }
+        });
+
+        horaInput.addEventListener('change', () => {
+            if (!isHoraValid(horaInput.value)) {
+                showError(horaContainer, horaError);
+            } else {
+                clearError(horaContainer, horaError);
+            }
+        });
+
         // --- Form Submission (Register) ---
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            // Validate date
+            if (!isFechaValid(fechaInput.value)) {
+                showError(fechaContainer, fechaError);
+                fechaInput.focus();
+                return;
+            }
+            clearError(fechaContainer, fechaError);
+
+            // Validate time
+            if (!isHoraValid(horaInput.value)) {
+                showError(horaContainer, horaError);
+                horaInput.focus();
+                return;
+            }
+            clearError(horaContainer, horaError);
+
             const formData = {
                 ciPaciente: ciPacienteInput.value,
                 ciMedico: ciMedicoSelect.value,
-                fecha: document.getElementById('fecha').value,
-                hora: document.getElementById('hora').value,
+                fecha: fechaInput.value,
+                hora: horaInput.value,
                 motivo: document.getElementById('motivo').value,
                 estado: document.getElementById('estado').value,
                 observaciones: document.getElementById('observaciones').value
@@ -158,7 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Por favor, ingrese un paciente válido.');
                 return;
             }
-            
+
             if (!formData.ciMedico) {
                 alert('Por favor, seleccione un médico.');
                 return;
@@ -178,6 +247,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     ciMedicoSelect.innerHTML = '<option value="" disabled selected>Seleccione especialidad primero...</option>';
                     ciMedicoSelect.disabled = true;
                     currentTurnoId = null;
+                    if (btnModificar) btnModificar.disabled = true;
+                    if (btnEliminar) btnEliminar.style.display = 'none';
+                    document.getElementById('estado').value = 'Pendiente';
                 } else {
                     const error = await response.json();
                     alert(`Error: ${error.error || 'Desconocido'}`);
@@ -219,6 +291,41 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        // --- Delete / Cancel logic ---
+        if (btnEliminar) {
+            btnEliminar.addEventListener('click', async () => {
+                if (!currentTurnoId) return;
+
+                if (!confirm('¿Estás seguro de que deseas cancelar este turno? El estado cambiará a "Cancelada".')) return;
+
+                try {
+                    const response = await fetch(`http://localhost:3000/turno/${currentTurnoId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.ok) {
+                        // Update state field visually — don't reset the form
+                        const estadoInput = document.getElementById('estado');
+                        estadoInput.value = 'Cancelada';
+                        estadoInput.style.color = '#991b1b';
+
+                        // Disable action buttons — turno is now cancelled
+                        if (btnModificar) btnModificar.disabled = true;
+                        btnEliminar.disabled = true;
+                        btnEliminar.textContent = 'Turno Cancelado';
+                        btnEliminar.style.opacity = '0.6';
+
+                        alert('¡Turno cancelado con éxito! El estado fue actualizado a "Cancelada".');
+                    } else {
+                        const error = await response.json();
+                        alert(`Error al cancelar: ${error.error || 'Desconocido'}`);
+                    }
+                } catch (err) {
+                    alert('Error al conectar con el servidor.');
+                }
+            });
+        }
+
         // --- Clear logic ---
         const btnClear = document.querySelector('.btn-clear-form');
         if (btnClear) {
@@ -228,6 +335,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ciMedicoSelect.disabled = true;
                 currentTurnoId = null;
                 if (btnModificar) btnModificar.disabled = true;
+                if (btnEliminar) btnEliminar.style.display = 'none';
+                document.getElementById('estado').value = 'Pendiente';
             });
         }
     }

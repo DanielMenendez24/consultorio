@@ -1,14 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrar pacientes | La Segunda Opción</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
+
 <body>
     <header>
         <nav>
@@ -49,18 +53,24 @@
         <section class="form-section" style="padding: 2rem; max-width: 900px; margin: 0 auto; margin-top: 4rem;">
             <div class="glass-card">
                 <button type="reset" form="form-reg-paciente" class="btn-clear-form" title="Vaciar todos los campos">
-                    <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></i>
+                    <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg></i>
                     Vaciar campos
                 </button>
                 <h2 class="section-title">Registrar Nuevo Paciente</h2>
-                <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Los campos marcados con * son obligatorios.</p>
+                <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Los campos marcados con
+                    * son obligatorios.</p>
                 <form id="form-reg-paciente">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="ci">Documento de Identidad (CI)*</label>
-                            <div class="input-container">
-                                <input type="text" id="ci" name="ci" placeholder="12345678" required>
+                            <div class="input-container" id="ci-container">
+                                <input type="text" id="ci" name="ci" placeholder="12345678" required maxlength="8">
                             </div>
+                            <span class="field-error-msg" id="ci-error">CI inválida: verifica el dígito verificador.</span>
                         </div>
                         <div class="form-group">
                             <label for="nombre">Nombre*</label>
@@ -77,42 +87,49 @@
                         <div class="form-group">
                             <label for="fechaNacimiento">Fecha de nacimiento*</label>
                             <div class="input-container">
-                                <input type="date" id="fechaNacimiento" name="fechaNacimiento" style="padding-left: 2.8rem;" required>
+                                <input type="date" id="fechaNacimiento" name="fechaNacimiento"
+                                    style="padding-left: 2.8rem;" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="sexo">Sexo*</label>
-                            <select id="sexo" name="sexo" required>
-                                <option value="" disabled selected>Seleccione el sexo...</option>
-                                <option value="Masculino">Masculino</option>
-                                <option value="Femenino">Femenino</option>
-                                <option value="Otro">Otro/Prefiero no decirlo</option>
-                            </select>
+                            <label>Sexo*</label>
+                            <div class="segmented-control">
+                                <input type="radio" id="sexo-m" name="sexo" value="Masculino" required>
+                                <label for="sexo-m">Masculino</label>
+
+                                <input type="radio" id="sexo-f" name="sexo" value="Femenino">
+                                <label for="sexo-f">Femenino</label>
+
+                                <input type="radio" id="sexo-o" name="sexo" value="Otro">
+                                <label for="sexo-o">Otro</label>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="departamento">Departamento*</label>
-                            <select id="departamento" name="departamento" required>
-                                <option value="" disabled selected>Seleccione un departamento...</option>
-                                <option value="Montevideo">Montevideo</option>
-                                <option value="Artigas">Artigas</option>
-                                <option value="Canelones">Canelones</option>
-                                <option value="Cerro Largo">Cerro Largo</option>
-                                <option value="Colonia">Colonia</option>
-                                <option value="Durazno">Durazno</option>
-                                <option value="Flores">Flores</option>
-                                <option value="Florida">Florida</option>
-                                <option value="Lavalleja">Lavalleja</option>
-                                <option value="Maldonado">Maldonado</option>
-                                <option value="Paysandú">Paysandú</option>
-                                <option value="Río Negro">Río Negro</option>
-                                <option value="Rivera">Rivera</option>
-                                <option value="Rocha">Rocha</option>
-                                <option value="Salto">Salto</option>
-                                <option value="San José">San José</option>
-                                <option value="Soriano">Soriano</option>
-                                <option value="Tacuarembó">Tacuarembó</option>
-                                <option value="Treinta y Tres">Treinta y Tres</option>
-                            </select>
+                            <div class="custom-select-wrapper">
+                                <select id="departamento" name="departamento" required>
+                                    <option value="" disabled selected>Seleccione un departamento...</option>
+                                    <option value="Montevideo">Montevideo</option>
+                                    <option value="Artigas">Artigas</option>
+                                    <option value="Canelones">Canelones</option>
+                                    <option value="Cerro Largo">Cerro Largo</option>
+                                    <option value="Colonia">Colonia</option>
+                                    <option value="Durazno">Durazno</option>
+                                    <option value="Flores">Flores</option>
+                                    <option value="Florida">Florida</option>
+                                    <option value="Lavalleja">Lavalleja</option>
+                                    <option value="Maldonado">Maldonado</option>
+                                    <option value="Paysandú">Paysandú</option>
+                                    <option value="Río Negro">Río Negro</option>
+                                    <option value="Rivera">Rivera</option>
+                                    <option value="Rocha">Rocha</option>
+                                    <option value="Salto">Salto</option>
+                                    <option value="San José">San José</option>
+                                    <option value="Soriano">Soriano</option>
+                                    <option value="Tacuarembó">Tacuarembó</option>
+                                    <option value="Treinta y Tres">Treinta y Tres</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="ciudad">Ciudad*</label>
@@ -139,30 +156,50 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="telPersona">Teléfono de contacto*</label>
+                            <label for="telPersona">Teléfono(s) (separados por coma)*</label>
                             <div class="input-container">
-                                <input type="text" id="telPersona" name="telPersona" placeholder="099 123 456" required>
+                                <input type="text" id="telPersona" name="telPersona" placeholder="099123456, 098765432"
+                                    required>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-column: span 1;">
+                            <label>Tipo de Sangre*</label>
+                            <div class="chip-grid" id="tipoSangre-grid">
+                                <input type="radio" id="blood-ap" name="tipoSangre" value="A+" required>
+                                <label for="blood-ap">A+</label>
+                                <input type="radio" id="blood-an" name="tipoSangre" value="A-">
+                                <label for="blood-an">A-</label>
+                                <input type="radio" id="blood-bp" name="tipoSangre" value="B+">
+                                <label for="blood-bp">B+</label>
+                                <input type="radio" id="blood-bn" name="tipoSangre" value="B-">
+                                <label for="blood-bn">B-</label>
+                                <input type="radio" id="blood-abp" name="tipoSangre" value="AB+">
+                                <label for="blood-abp">AB+</label>
+                                <input type="radio" id="blood-abn" name="tipoSangre" value="AB-">
+                                <label for="blood-abn">AB-</label>
+                                <input type="radio" id="blood-op" name="tipoSangre" value="O+">
+                                <label for="blood-op">O+</label>
+                                <input type="radio" id="blood-on" name="tipoSangre" value="O-">
+                                <label for="blood-on">O-</label>
+                                <input type="radio" id="blood-ns" name="tipoSangre" value="No sabe">
+                                <label for="blood-ns">?</label>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="tipoSangre">Tipo de Sangre*</label>
-                            <select id="tipoSangre" name="tipoSangre" required>
-                                <option value="" disabled selected>Seleccione...</option>
-                                <option value="A+">A+</option>
-                                <option value="A-">A-</option>
-                                <option value="B+">B+</option>
-                                <option value="B-">B-</option>
-                                <option value="AB+">AB+</option>
-                                <option value="AB-">AB-</option>
-                                <option value="O+">O+</option>
-                                <option value="O-">O-</option>
-                                <option value="No sabe">No sabe</option>
-                            </select>
+                            <label for="estado">Estado</label>
+                            <div class="input-container">
+                                <input type="text" id="estado" name="estado" value="Alta" readonly
+                                    style="background: rgba(255,255,255,0.05); color: var(--text-muted);">
+                            </div>
                         </div>
                     </div>
-                    
+
                     <div class="form-actions" style="margin-top: 2rem; justify-content: flex-end; gap: 1rem;">
-                        <button type="button" id="btn-modificar" class="btn-secondary" style="max-width: 250px;" disabled>Modificar Datos</button>
+                        <button type="button" id="btn-eliminar" class="btn-secondary"
+                            style="max-width: 200px; background-color: var(--error-color, #ef4444); border-color: var(--error-color, #ef4444); color: white;"
+                            disabled>Eliminar Paciente</button>
+                        <button type="button" id="btn-modificar" class="btn-secondary" style="max-width: 250px;"
+                            disabled>Modificar Datos</button>
                         <button type="submit" class="btn-primary" style="max-width: 250px;">Registrar Paciente</button>
                     </div>
                 </form>
@@ -177,4 +214,5 @@
     <script src="../assets/js/validation.js"></script>
     <script src="../assets/js/reg_paciente.js"></script>
 </body>
+
 </html>

@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${especialidad}</td>
                     <td>${motivo}</td>
                     <td>${obs}</td>
-                    <td>${estado}</td>
+                    <td><span class="status-badge status-${(p.Estado || 'Pendiente').toLowerCase()}">${p.Estado || 'Pendiente'}</span></td>
                 `;
             } else {
                 const idCol = isMedicos ? (p.nroLicencia || 'N/A') : (p.idPaciente || 'N/A');
@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${direccion}</td>
                     <td>${telefono}</td>
                     <td>${attrEspecial}</td>
+                    <td><span class="status-badge status-${(p.estado || 'Alta').toLowerCase()}">${p.estado || 'Alta'}</span></td>
                 `;
             }
             tbody.appendChild(tr);
