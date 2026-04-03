@@ -11,10 +11,11 @@ app.use(cors());
 app.use(express.json());
 
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '31011007',
-    database: process.env.DB_NAME || 'consultorio'
+    host: process.env.DB_HOST || 'mysql-denn241198-daniel-2636.d.aivencloud.com',
+    user: process.env.DB_USER || 'avnadmin',
+    password: process.env.DB_PASSWORD || 'AVNS_clfMnmRknpxv5SOGJEA',
+    database: process.env.DB_NAME || 'consultorio',
+    port: process.env.DB_PORT || 20155
 });
 
 pool.getConnection((err, conn) => {
