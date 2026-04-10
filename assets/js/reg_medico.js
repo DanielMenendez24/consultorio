@@ -73,12 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
                                     }
                                 }
 
-                                if (btnModificar) btnModificar.disabled = false;
-                                if (btnEliminar) btnEliminar.disabled = false;
+                                if (btnModificar) btnModificar.disabled = !person.especialidad;
+                                if (btnEliminar) btnEliminar.disabled = !person.especialidad;
 
-                                // Store original data for diffing
+                                // Store original data for diffing, handling nulls as empty strings
                                 originalData = {
-                                    ci: person.ci,
+                                    ci: person.ci ? String(person.ci) : '',
                                     nombre: person.nombreP || '',
                                     apellido: person.apellidoP || '',
                                     fechaNacimiento: person.fechaNac ? new Date(person.fechaNac).toISOString().split('T')[0] : '',
@@ -92,6 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                     especialidad: person.especialidad || '',
                                     estado: person.estado || 'Alta'
                                 };
+                            } else {
+                                // Clear form if person not found
+                                if (btnModificar) btnModificar.disabled = true;
+                                if (btnEliminar) btnEliminar.disabled = true;
                             }
                         }
                     } catch (err) {
@@ -103,26 +107,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (btnModificar) {
             btnModificar.addEventListener('click', async () => {
-                const ci = ciInput.value;
+                const ciValue = ciInput.value.trim();
                 const currentData = {
-                    ci: ci,
-                    nombre: document.getElementById('nombre').value,
-                    apellido: document.getElementById('apellido').value,
+                    ci: ciValue,
+                    nombre: document.getElementById('nombre').value.trim(),
+                    apellido: document.getElementById('apellido').value.trim(),
                     fechaNacimiento: document.getElementById('fechaNacimiento').value,
                     sexo: form.elements['sexo'].value,
                     departamento: document.getElementById('departamento').value,
-                    ciudad: document.getElementById('ciudad').value,
-                    barrio: document.getElementById('barrio').value,
-                    calle: document.getElementById('calle').value,
-                    numeroPuerta: document.getElementById('numeroPuerta').value,
-                    telPersona: document.getElementById('telPersona').value,
+                    ciudad: document.getElementById('ciudad').value.trim(),
+                    barrio: document.getElementById('barrio').value.trim(),
+                    calle: document.getElementById('calle').value.trim(),
+                    numeroPuerta: document.getElementById('numeroPuerta').value.trim(),
+                    telPersona: document.getElementById('telPersona').value.trim(),
                     especialidad: document.getElementById('especialidad').value
                 };
 
-                // Filter only changed fields
+                // Filter only changed fields with robust comparison
                 const updates = {};
                 for (const key in currentData) {
-                    if (currentData[key] !== (originalData ? originalData[key] : '')) {
+                    const originalVal = originalData ? (originalData[key] || '') : '';
+                    if (String(currentData[key]) !== String(originalVal)) {
                         updates[key] = currentData[key];
                     }
                 }
@@ -133,7 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 try {
-                    const response = await fetch(`http://localhost:3000/medico/${originalData ? originalData.ci : ci}`, {
+                    const targetCi = originalData ? originalData.ci : ciValue;
+                    const response = await fetch(`http://localhost:3000/medico/${targetCi}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(updates)
@@ -141,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (response.ok) {
                         alert('¡Datos modificados con éxito!');
-                        // Update originalData with new values
+                        // Update originalData with new values to allow further edits
                         originalData = { ...originalData, ...updates };
                     } else {
                         const error = await response.json();
