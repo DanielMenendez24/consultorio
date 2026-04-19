@@ -143,6 +143,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         fechaInput.addEventListener('change', checkExistingTurno);
 
+        // Check for URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const ciParam = urlParams.get('ci');
+        const fechaParam = urlParams.get('fecha');
+
+        if (ciParam && fechaParam) {
+            ciPacienteInput.value = ciParam;
+            // Format fechaParam if needed (it should come as YYYY-MM-DD from the SQL/URL)
+            let formattedDate = fechaParam;
+            if (fechaParam.includes('T')) {
+                formattedDate = fechaParam.split('T')[0];
+            }
+            fechaInput.value = formattedDate;
+
+            fetchPatientName(ciParam);
+            checkExistingTurno();
+        }
+
         // Disable modify button if CI or Date changes
         [ciPacienteInput, fechaInput].forEach(el => {
             el.addEventListener('input', () => {
@@ -177,7 +195,27 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!val) return false;
             const [h, m] = val.split(':').map(Number);
             const minutes = h * 60 + m;
-            return minutes >= 7 * 60 && minutes <= 20 * 60;
+
+            // Basic range check (07:00 - 20:00)
+            if (minutes < 7 * 60 || minutes > 20 * 60) return false;
+
+            // If date is today, check that time is not in the past (compensating -3 hours)
+            if (fechaInput.value) {
+                const selectedDate = new Date(fechaInput.value + 'T00:00:00');
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                if (selectedDate.getTime() === today.getTime()) {
+                    const nowAdjusted = new Date();
+                    // Subtract 3 hours from 'now' as per user request
+                    nowAdjusted.setHours(nowAdjusted.getHours() - 3);
+                    
+                    const nowMinutes = nowAdjusted.getHours() * 60 + nowAdjusted.getMinutes();
+                    if (minutes < nowMinutes) return false;
+                }
+            }
+
+            return true;
         };
 
         fechaInput.addEventListener('change', () => {

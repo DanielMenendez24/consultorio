@@ -50,15 +50,15 @@
         </nav>
     </header>
     <main>
-        <section class="form-section" style="padding: 2rem; max-width: 900px; margin: 0 auto; margin-top: 4rem;">
+        <section class="form-section">
             <div class="glass-card">
                 <button type="reset" form="form-reg-turno" class="btn-clear-form" title="Vaciar todos los campos">
-                    <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg></i>
-                    Vaciar campos
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    <span>Vaciar campos</span>
                 </button>
                 <h2 class="section-title">Registrar Nuevo Turno</h2>
                 <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.5rem;">Cree una nueva cita
@@ -125,13 +125,15 @@
                         </div>
                         <div class="form-group">
                             <label for="estado">Estado del Turno*</label>
-                            <div class="input-container">
-                                <input type="text" id="estado" name="estado" value="Pendiente" readonly
-                                    style="background: rgba(255,255,255,0.05); color: var(--text-muted);">
+                            <div class="custom-select-wrapper">
+                                <select id="estado" name="estado" required>
+                                    <option value="Pendiente" selected>Pendiente</option>
+                                    <option value="Cancelada">Cancelada</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div class="form-group" style="grid-column: span 2;">
+                        <div class="form-group">
                             <label for="observaciones">Observaciones adicionales</label>
                             <div class="input-container">
                                 <textarea id="observaciones" name="observaciones" rows="3"
@@ -140,14 +142,10 @@
                         </div>
                     </div>
 
-                    <div class="form-actions" style="margin-top: 2rem; justify-content: flex-end; gap: 1rem;">
-                        <button type="button" id="btn-eliminar" class="btn-secondary"
-                            style="max-width: 200px; color: #ef4444; border-color: #ef4444; display: none;">Eliminar
-                            Turno</button>
-                        <button type="button" id="btn-modificar" class="btn-secondary" style="max-width: 200px;"
-                            disabled>Modificar Turno</button>
-                        <button type="submit" id="btn-registrar" class="btn-primary" style="max-width: 250px;">Registrar
-                            Turno</button>
+                    <div class="form-actions">
+                        <button type="button" id="btn-eliminar" class="btn-danger" style="display: none;">Eliminar Turno</button>
+                        <button type="button" id="btn-modificar" class="btn-secondary" disabled>Modificar Turno</button>
+                        <button type="submit" id="btn-registrar" class="btn-primary">Registrar Turno</button>
                     </div>
                 </form>
             </div>

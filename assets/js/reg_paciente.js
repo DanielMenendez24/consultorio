@@ -25,9 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (btnEliminar) btnEliminar.disabled = true;
             });
 
-            ciInput.addEventListener('blur', async () => {
-                const ci = ciInput.value.trim();
-
+            const fetchAndFill = async (ci) => {
                 if (ci && typeof esCedulaValida === 'function' && !esCedulaValida(ci)) {
                     showCiError();
                     return;
@@ -98,7 +96,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.error('Error fetching person data:', err);
                     }
                 }
-            });
+            };
+
+            ciInput.addEventListener('blur', () => fetchAndFill(ciInput.value.trim()));
+
+            // Check for CI in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const ciParam = urlParams.get('ci');
+            if (ciParam) {
+                ciInput.value = ciParam;
+                fetchAndFill(ciParam);
+            }
         }
 
         if (btnModificar) {

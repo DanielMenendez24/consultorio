@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isMedicos) { tbody = tbodyMedicos; pathBase = 'medico'; itemName = 'médicos'; }
     if (isTurnos) { tbody = tbodyTurnos; pathBase = 'turno'; itemName = 'turnos'; }
 
-    let currentFilter = isTurnos ? 'future' : '';
+    let currentFilter = isTurnos ? 'past' : '';
 
     const renderTable = (data) => {
         tbody.innerHTML = '';
@@ -41,18 +41,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const estado = p.Estado || 'N/A';
 
                 tr.innerHTML = `
-                    <td>${fechaHora}</td>
-                    <td>${paciente}</td>
-                    <td>${medico}</td>
-                    <td>${especialidad}</td>
-                    <td>${motivo}</td>
-                    <td>${obs}</td>
-                    <td><span class="status-badge status-${(p.Estado || 'Pendiente').toLowerCase()}">${p.Estado || 'Pendiente'}</span></td>
+                    <td data-label="Fecha y hora">${fechaHora}</td>
+                    <td data-label="Paciente">${paciente}</td>
+                    <td data-label="Médico">${medico}</td>
+                    <td data-label="Especialidad">${especialidad}</td>
+                    <td data-label="Motivo">${motivo}</td>
+                    <td data-label="Observaciones">${obs}</td>
+                    <td data-label="Estado"><span class="status-badge status-${(p.Estado || 'Pendiente').toLowerCase()}">${p.Estado || 'Pendiente'}</span></td>
+                    <td data-label="Acciones">
+                        ${p.Estado === 'Pendiente' ? `
+                            <a href="reg_turnos.html?ci=${p.ciPaciente || ''}&fecha=${p.fechaConsulta || ''}" class="btn-modify-inline">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg>
+                                Modificar
+                            </a>
+                        ` : '<span class="text-muted" style="font-size: 0.75rem; opacity: 0.6;">No modificable</span>'}
+                    </td>
                 `;
             } else {
                 const idCol = isMedicos ? (p.nroLicencia || 'N/A') : (p.idPaciente || 'N/A');
                 const documento = p.ci || 'N/A';
-                const nombre = p.Paciente || 'N/A'; // el alias del SQL
+                const nombre = p.Paciente || p.nombre || 'N/A'; // el alias del SQL
                 const sexo = p.sexo || 'N/A';
                 
                 let fecha = p.fechaNac || 'N/A';
@@ -64,16 +72,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 const telefono = p.telefono || 'N/A';
                 const attrEspecial = isMedicos ? (p.especialidad || 'N/A') : (p.tipoSangre || 'N/A');
 
+                const attrLabel = isMedicos ? "Especialidad" : "Sangre";
+                const targetPage = isMedicos ? "reg_medicos.html" : "reg_pacientes.html";
+
                 tr.innerHTML = `
-                    <td>${idCol}</td>
-                    <td>${documento}</td>
-                    <td>${nombre}</td>
-                    <td>${sexo}</td>
-                    <td>${fecha}</td>
-                    <td>${direccion}</td>
-                    <td>${telefono}</td>
-                    <td>${attrEspecial}</td>
-                    <td><span class="status-badge status-${(p.estado || 'Alta').toLowerCase()}">${p.estado || 'Alta'}</span></td>
+                    <td data-label="ID">${idCol}</td>
+                    <td data-label="Documento">${documento}</td>
+                    <td data-label="Nombre">${nombre}</td>
+                    <td data-label="Sexo">${sexo}</td>
+                    <td data-label="Fecha Nac.">${fecha}</td>
+                    <td data-label="Dirección">${direccion}</td>
+                    <td data-label="Teléfono">${telefono}</td>
+                    <td data-label="${attrLabel}">${attrEspecial}</td>
+                    <td data-label="Estado"><span class="status-badge status-${(p.estado || 'Alta').toLowerCase()}">${p.estado || 'Alta'}</span></td>
+                    <td data-label="Acciones">
+                        <a href="${targetPage}?ci=${documento}" class="btn-modify-inline">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4L18.5 2.5z"></path></svg>
+                            Modificar
+                        </a>
+                    </td>
                 `;
             }
             tbody.appendChild(tr);

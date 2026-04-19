@@ -3,42 +3,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const navUl = document.querySelector('nav ul');
 
     if (menuToggle && navUl) {
-        menuToggle.addEventListener('click', () => {
+        const closeMenu = () => {
+            navUl.classList.remove('active');
+            menuToggle.classList.remove('active');
+            document.querySelectorAll('.dropdown.active').forEach(d => d.classList.remove('active'));
+        };
+
+        const toggleMenu = () => {
             navUl.classList.toggle('active');
             menuToggle.classList.toggle('active');
+        };
+
+        // main toggle button
+        menuToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleMenu();
         });
 
         // Handle menu links and dropdowns
-        const navLinks = document.querySelectorAll('nav ul li a');
+        const navLinks = document.querySelectorAll('nav ul li > a');
         navLinks.forEach(link => {
             link.addEventListener('click', (e) => {
                 const nextEl = link.nextElementSibling;
-                // If it's a dropdown link, toggle the active class
+                
+                // Check if it's a dropdown toggle (has a dropdown-menu child)
                 if (nextEl && nextEl.classList.contains('dropdown-menu')) {
                     e.preventDefault();
+                    e.stopPropagation();
                     
+                    const parent = link.parentElement;
+                    const isActive = parent.classList.contains('active');
+
                     // Close other active dropdowns
                     document.querySelectorAll('.dropdown.active').forEach(d => {
-                        if (d !== link.parentElement) {
-                            d.classList.remove('active');
-                        }
+                        if (d !== parent) d.classList.remove('active');
                     });
                     
-                    link.parentElement.classList.toggle('active');
+                    parent.classList.toggle('active', !isActive);
                 } else {
-                    // Close the entire menu if non-dropdown link is clicked
-                    navUl.classList.remove('active');
-                    menuToggle.classList.remove('active');
-                    // Also close any open dropdowns
-                    document.querySelectorAll('.dropdown.active').forEach(d => d.classList.remove('active'));
+                    // It's a direct link: navigate and close menu
+                    closeMenu();
                 }
             });
         });
 
-        // Close dropdowns when clicking outside
+        // Close menu/dropdowns when clicking outside
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.dropdown') && !e.target.closest('.menu-toggle')) {
-                document.querySelectorAll('.dropdown.active').forEach(d => d.classList.remove('active'));
+            const isClickInsideMenu = navUl.contains(e.target);
+            const isClickOnToggle = menuToggle.contains(e.target);
+
+            if (!isClickInsideMenu && !isClickOnToggle) {
+                closeMenu();
+            }
+        });
+
+        // Accessibility: Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeMenu();
             }
         });
     }

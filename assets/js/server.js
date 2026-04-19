@@ -21,7 +21,31 @@ const pool = mysql.createPool({
 pool.getConnection((err, conn) => {
     if (err) throw err;
     console.log('Connected to MySQL database');
+    // Initial update on startup
+    autoUpdateExpiredTurnos();
 });
+
+// Logic to automatically update expired appointments to 'Realizada'
+function autoUpdateExpiredTurnos() {
+    const sql = `
+        UPDATE consulta 
+        SET estado = 'Realizada' 
+        WHERE (estado = 'Pendiente' OR estado = 'Confirmada' OR estado IS NULL) 
+        AND TIMESTAMP(fechaConsulta, horaConsulta) < DATE_SUB(NOW(), INTERVAL 3 HOUR)
+    `;
+    pool.query(sql, (err, result) => {
+        if (err) {
+            console.error('Error updating expired turnos:', err);
+            return;
+        }
+        if (result.affectedRows > 0) {
+            console.log(`[Auto-Update] ${result.affectedRows} turnos actualizados a 'Realizada'`);
+        }
+    });
+}
+
+// Check for expired appointments every 60 seconds
+setInterval(autoUpdateExpiredTurnos, 60000);
 
 app.get('/paciente', (req, res) => {
     const sql = `
@@ -169,9 +193,9 @@ app.get('/turno', (req, res) => {
     const filter = req.query.filter;
     let whereClause = '';
     if (filter === 'past') {
-        whereClause = 'WHERE c.fechaConsulta < CURDATE()';
+        whereClause = "WHERE c.estado IN ('Realizada', 'Cancelada')";
     } else if (filter === 'future') {
-        whereClause = 'WHERE c.fechaConsulta >= CURDATE()';
+        whereClause = "WHERE c.estado = 'Pendiente'";
     }
 
     const sql = `
@@ -182,7 +206,9 @@ app.get('/turno', (req, res) => {
             m.especialidad AS 'Especialidad',
             c.motivoConsulta AS 'Motivo',
             c.observaciones AS 'Observaciones',
-            c.estado AS 'Estado'
+            c.estado AS 'Estado',
+            pac.ci AS 'ciPaciente',
+            c.fechaConsulta AS 'fechaConsulta'
         FROM consulta c
         JOIN paciente pac ON c.idPaciente = pac.idPaciente
         JOIN persona p_paciente ON pac.ci = p_paciente.ci
@@ -205,9 +231,9 @@ app.get('/turno/:ci', (req, res) => {
     const filter = req.query.filter;
     let dateFilter = '';
     if (filter === 'past') {
-        dateFilter = 'AND c.fechaConsulta < CURDATE()';
+        dateFilter = "AND c.estado IN ('Realizada', 'Cancelada')";
     } else if (filter === 'future') {
-        dateFilter = 'AND c.fechaConsulta >= CURDATE()';
+        dateFilter = "AND c.estado = 'Pendiente'";
     }
 
     const sql = `
@@ -218,7 +244,9 @@ app.get('/turno/:ci', (req, res) => {
             m.especialidad AS 'Especialidad',
             c.motivoConsulta AS 'Motivo',
             c.observaciones AS 'Observaciones',
-            c.estado AS 'Estado'
+            c.estado AS 'Estado',
+            pac.ci AS 'ciPaciente',
+            c.fechaConsulta AS 'fechaConsulta'
         FROM consulta c
         JOIN paciente pac ON c.idPaciente = pac.idPaciente
         JOIN persona p_paciente ON pac.ci = p_paciente.ci
