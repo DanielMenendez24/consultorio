@@ -3,6 +3,10 @@ require('dotenv').config();
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+const SECRET_KEY = process.env.JWT_SECRET || 'lasegundaopcion_secret_2026';
 
 const app = express();
 const port = 3000;
@@ -15,7 +19,8 @@ const pool = mysql.createPool({
     user: process.env.DB_USER || 'avnadmin',
     password: process.env.DB_PASSWORD || 'AVNS_clfMnmRknpxv5SOGJEA',
     database: process.env.DB_NAME || 'consultorio',
-    port: process.env.DB_PORT || 20155
+    port: process.env.DB_PORT || 20155,
+    multipleStatements: true
 });
 
 pool.getConnection((err, conn) => {
@@ -23,6 +28,61 @@ pool.getConnection((err, conn) => {
     console.log('Connected to MySQL database');
     // Initial update on startup
     autoUpdateExpiredTurnos();
+    conn.release();
+});
+
+// Middleware para verificar el token JWT
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) return res.status(401).json({ error: 'Acceso denegado: Token no proporcionado' });
+
+    jwt.verify(token, SECRET_KEY, (err, user) => {
+        if (err) return res.status(403).json({ error: 'Token inválido o expirado' });
+        req.user = user;
+        next();
+    });
+}
+
+// Endpoint de Login
+app.post('/api/login', (req, res) => {
+    const { username, password } = req.body;
+    
+    // Por simplicidad en este MVP, usamos un admin hardcoded 
+    // pero preparado para escalar a BD.
+    if (username === 'admin' && password === 'admin') {
+        const token = jwt.sign({ username: 'admin', role: 'admin' }, SECRET_KEY, { expiresIn: '8h' });
+        return res.json({ token });
+    }
+    
+    res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+});
+
+// Proteger todas las rutas de la API con el middleware
+// (Nota: Podríamos aplicarlo a grupos específicos, pero por seguridad lo aplicamos a las principales)
+app.use(['/paciente', '/medico', '/turno', '/especialidad', '/persona', '/api/stats'], (req, res, next) => {
+    // Excluir búsqueda pública si fuera necesario, pero aquí todo es gestión interna
+    authenticateToken(req, res, next);
+});
+
+// Endpoint de Estadísticas para el Dashboard
+app.get('/api/stats', (req, res) => {
+    const qPatients = "SELECT COUNT(*) as total FROM paciente WHERE estado = 'Alta'";
+    const qMedicos = "SELECT COUNT(*) as total FROM medico WHERE estado = 'Alta'";
+    const qTurnosToday = "SELECT COUNT(*) as total FROM consulta WHERE fechaConsulta = CURDATE()";
+
+    pool.query(`${qPatients}; ${qMedicos}; ${qTurnosToday}`, (err, results) => {
+        if (err) {
+            console.error('Error fetching stats:', err);
+            return res.status(500).json({ error: 'Error al obtener estadísticas' });
+        }
+        res.json({
+            pacientes: results[0][0].total,
+            medicos: results[1][0].total,
+            turnosHoy: results[2][0].total
+        });
+    });
 });
 
 // Logic to automatically update expired appointments to 'Realizada'

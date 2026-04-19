@@ -28,8 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        data.forEach(p => {
+        data.forEach((p, index) => {
             const tr = document.createElement('tr');
+            tr.className = 'fade-in-up';
+            tr.style.animationDelay = `${index * 50}ms`;
             
             if (isTurnos) {
                 const fechaHora = p.FechaHora || 'N/A';
@@ -99,7 +101,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const fetchData = async (ci = null) => {
         try {
-            tbody.innerHTML = `<tr><td colspan="8" class="table-empty-message">⏳ Buscando registros...</td></tr>`;
+            // Mostrar Skeleton Rows
+            tbody.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                const skeletonTr = document.createElement('tr');
+                skeletonTr.innerHTML = `
+                    <td colspan="8">
+                        <div class="skeleton" style="width: 100%; height: 20px;"></div>
+                    </td>
+                `;
+                tbody.appendChild(skeletonTr);
+            }
             
             let url = ci ? `http://localhost:3000/${pathBase}/${ci}` : `http://localhost:3000/${pathBase}`;
             
@@ -107,7 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 url += (url.includes('?') ? '&' : '?') + `filter=${currentFilter}`;
             }
 
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             
             if (!response.ok) {
                 throw new Error('No se pudo conectar al Backend Express');
@@ -154,3 +170,4 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+

@@ -10,45 +10,11 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@400;600;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css"><script src="../assets/js/components/app-header.js" defer></script><script src="../assets/js/components/app-footer.js" defer></script>
 </head>
 
 <body>
-    <header>
-        <nav>
-            <div class="logo-small">
-                <span class="logo-icon">
-                    <img src="../assets/img/lasegundaopcion_logo.png" alt="Logo La Segunda Opción">
-                </span>
-                <span>La Segunda Opción</span>
-            </div>
-            <button class="menu-toggle" aria-label="Abrir menú">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </button>
-            <ul>
-                <li><a href="consultorio.html">Inicio</a></li>
-                <li class="dropdown">
-                    <a href="#">Listar</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="list_pacientes.html">Pacientes</a></li>
-                        <li><a href="list_medicos.html">Médicos</a></li>
-                        <li><a href="list_turnos.html">Turnos</a></li>
-                    </ul>
-                </li>
-                <li class="dropdown">
-                    <a href="#" class="active">Gestionar</a>
-                    <ul class="dropdown-menu">
-                        <li><a href="reg_pacientes.html">Pacientes</a></li>
-                        <li><a href="reg_medicos.html">Médicos</a></li>
-                        <li><a href="reg_turnos.html">Turnos</a></li>
-                    </ul>
-                </li>
-                <li><a href="../index.html">Cerrar Sesión</a></li>
-            </ul>
-        </nav>
-    </header>
+    <app-header internal></app-header>
     <main>
         <section class="form-section">
             <div class="glass-card">
@@ -181,8 +147,6 @@
                                 <label for="blood-op">O+</label>
                                 <input type="radio" id="blood-on" name="tipoSangre" value="O-">
                                 <label for="blood-on">O-</label>
-                                <input type="radio" id="blood-ns" name="tipoSangre" value="No sabe">
-                                <label for="blood-ns">?</label>
                             </div>
                         </div>
                         <div class="form-group">
@@ -203,13 +167,11 @@
             </div>
         </section>
     </main>
-    <footer>
-        <p>La Segunda Opción | El lugar donde Google viene a confirmar sus dudas.<br>
-            Todos los derechos reservados &copy; 2026</p>
-    </footer>
-    <script src="../assets/js/mobile-menu.js"></script>
+    <app-footer></app-footer>
+    
     <script src="../assets/js/validation.js"></script>
     <script src="../assets/js/reg_paciente.js"></script>
 </body>
 
 </html>
+

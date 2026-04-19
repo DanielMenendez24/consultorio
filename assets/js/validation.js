@@ -16,16 +16,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
 
     if (loginForm) {
-        loginForm.addEventListener('submit', (event) => {
+        loginForm.addEventListener('submit', async (event) => {
             event.preventDefault();
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            if (username === 'admin' && password === 'admin') {
-                window.location.href = 'pages/consultorio.html';
-            } else {
-                alert('Usuario o contraseña incorrectos');
+            try {
+                const response = await fetch('http://localhost:3000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('token', data.token);
+                    window.location.href = 'pages/consultorio.html';
+                } else {
+                    alert(data.error || 'Error en el inicio de sesión');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                alert('No se pudo conectar con el servidor');
             }
         });
     }

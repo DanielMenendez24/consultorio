@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (ci.length >= 7) {
                     try {
-                        const response = await fetch(`http://localhost:3000/persona/${ci}`);
+                        const response = await fetch(`http://localhost:3000/persona/${ci}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}` } });
                         if (response.ok) {
                             const data = await response.json();
                             if (data && data.length > 0) {
@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const targetCi = originalData ? originalData.ci : ciValue;
                     const response = await fetch(`http://localhost:3000/medico/${targetCi}`, {
                         method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}`,  'Content-Type': 'application/json' },
                         body: JSON.stringify(updates)
                     });
 
@@ -248,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const response = await fetch('http://localhost:3000/medico', {
                     method: 'POST',
-                    headers: {
+                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}`, 
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(formData)
@@ -270,3 +270,5 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
