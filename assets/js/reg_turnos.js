@@ -116,9 +116,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         const data = await response.json();
                         if (data && data.length > 0) {
                             const person = data[0];
-                            if (person.tipoSangre) {
+                            if (person.tipoSangre && person.estado === 'Alta') {
                                 nombrePacienteInput.value = `${person.apellidoP}, ${person.nombreP}`;
                                 nombrePacienteInput.style.color = '#10b981';
+                            } else if (person.tipoSangre && person.estado !== 'Alta') {
+                                nombrePacienteInput.value = 'Paciente está de BAJA';
+                                nombrePacienteInput.style.color = '#ef4444';
                             } else {
                                 nombrePacienteInput.value = 'Persona existe pero NO es PACIENTE';
                                 nombrePacienteInput.style.color = '#ef4444';

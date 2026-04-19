@@ -38,6 +38,7 @@ app.get('/paciente', (req, res) => {
         FROM paciente p
         JOIN persona on p.ci = persona.ci
         LEFT JOIN tel_persona t ON p.ci = t.ci
+        WHERE p.estado = 'Alta'
         GROUP BY p.idPaciente, p.ci, persona.apellidoP, persona.nombreP, persona.sexo, persona.fechaNac, persona.departamento, persona.ciudad, persona.barrio, persona.calle, persona.nroApartamento, p.tipoSangre, p.estado
     `;
     pool.query(sql, (err, result) => {
@@ -64,7 +65,7 @@ app.get('/paciente/:ci', (req, res) => {
         FROM paciente p
         JOIN persona on p.ci = persona.ci
         LEFT JOIN tel_persona t ON p.ci = t.ci
-        WHERE p.ci = ?
+        WHERE p.ci = ? AND p.estado = 'Alta'
         GROUP BY p.idPaciente, p.ci, persona.apellidoP, persona.nombreP, persona.sexo, persona.fechaNac, persona.departamento, persona.ciudad, persona.barrio, persona.calle, persona.nroApartamento, p.tipoSangre, p.estado
     `;
     const ci = req.params.ci;
@@ -92,6 +93,7 @@ app.get('/medico', (req, res) => {
         FROM medico m
         JOIN persona on m.ci = persona.ci
         LEFT JOIN tel_persona t ON m.ci = t.ci
+        WHERE m.estado = 'Alta'
         GROUP BY m.nroLicencia, m.ci, persona.apellidoP, persona.nombreP, persona.sexo, persona.fechaNac, persona.departamento, persona.ciudad, persona.barrio, persona.calle, persona.nroApartamento, m.especialidad, m.estado
     `;
     pool.query(sql, (err, result) => {
@@ -118,7 +120,7 @@ app.get('/medico/:ci', (req, res) => {
         FROM medico m
         JOIN persona on m.ci = persona.ci
         LEFT JOIN tel_persona t ON m.ci = t.ci
-        WHERE m.ci = ?
+        WHERE m.ci = ? AND m.estado = 'Alta'
         GROUP BY m.nroLicencia, m.ci, persona.apellidoP, persona.nombreP, persona.sexo, persona.fechaNac, persona.departamento, persona.ciudad, persona.barrio, persona.calle, persona.nroApartamento, m.especialidad, m.estado
     `;
     const ci = req.params.ci;
@@ -132,7 +134,7 @@ app.get('/medico/:ci', (req, res) => {
 });
 
 app.get('/especialidad', (req, res) => {
-    const sql = 'SELECT DISTINCT especialidad FROM medico ORDER BY especialidad';
+    const sql = "SELECT DISTINCT especialidad FROM medico WHERE estado = 'Alta' ORDER BY especialidad";
     pool.query(sql, (err, result) => {
         if (err) {
             console.error('Error en consulta SQL:', err);
@@ -150,7 +152,7 @@ app.get('/medico/especialidad/:especialidad', (req, res) => {
             m.nroLicencia
         FROM medico m
         JOIN persona p ON m.ci = p.ci
-        WHERE m.especialidad = ?
+        WHERE m.especialidad = ? AND m.estado = 'Alta'
         ORDER BY p.apellidoP, p.nombreP
     `;
     const especialidad = req.params.especialidad;
@@ -164,6 +166,14 @@ app.get('/medico/especialidad/:especialidad', (req, res) => {
 });
 
 app.get('/turno', (req, res) => {
+    const filter = req.query.filter;
+    let whereClause = '';
+    if (filter === 'past') {
+        whereClause = 'WHERE c.fechaConsulta < CURDATE()';
+    } else if (filter === 'future') {
+        whereClause = 'WHERE c.fechaConsulta >= CURDATE()';
+    }
+
     const sql = `
         SELECT 
             CONCAT(c.fechaConsulta, ', ', c.horaConsulta) AS 'FechaHora',
@@ -178,7 +188,8 @@ app.get('/turno', (req, res) => {
         JOIN persona p_paciente ON pac.ci = p_paciente.ci
         JOIN medico m ON c.nroLicencia = m.nroLicencia
         JOIN persona p_medico ON m.ci = p_medico.ci
-        ORDER BY c.fechaConsulta
+        ${whereClause}
+        ORDER BY c.fechaConsulta DESC
     `;
     pool.query(sql, (err, result) => {
         if (err) {
@@ -190,6 +201,15 @@ app.get('/turno', (req, res) => {
 });
 
 app.get('/turno/:ci', (req, res) => {
+    const ci = req.params.ci;
+    const filter = req.query.filter;
+    let dateFilter = '';
+    if (filter === 'past') {
+        dateFilter = 'AND c.fechaConsulta < CURDATE()';
+    } else if (filter === 'future') {
+        dateFilter = 'AND c.fechaConsulta >= CURDATE()';
+    }
+
     const sql = `
         SELECT 
             CONCAT(c.fechaConsulta, ', ', c.horaConsulta) AS 'FechaHora',
@@ -204,10 +224,9 @@ app.get('/turno/:ci', (req, res) => {
         JOIN persona p_paciente ON pac.ci = p_paciente.ci
         JOIN medico m ON c.nroLicencia = m.nroLicencia
         JOIN persona p_medico ON m.ci = p_medico.ci
-        WHERE pac.ci = ? OR m.ci = ?
-        ORDER BY c.fechaConsulta
+        WHERE (pac.ci = ? OR m.ci = ?) ${dateFilter}
+        ORDER BY c.fechaConsulta DESC
     `;
-    const ci = req.params.ci;
     pool.query(sql, [ci, ci], (err, result) => {
         if (err) {
             console.error('Error en consulta SQL:', err);

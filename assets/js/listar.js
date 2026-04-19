@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isMedicos) { tbody = tbodyMedicos; pathBase = 'medico'; itemName = 'médicos'; }
     if (isTurnos) { tbody = tbodyTurnos; pathBase = 'turno'; itemName = 'turnos'; }
 
+    let currentFilter = isTurnos ? 'future' : '';
+
     const renderTable = (data) => {
         tbody.innerHTML = '';
         
@@ -82,7 +84,12 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             tbody.innerHTML = `<tr><td colspan="8" class="table-empty-message">⏳ Buscando registros...</td></tr>`;
             
-            const url = ci ? `http://localhost:3000/${pathBase}/${ci}` : `http://localhost:3000/${pathBase}`;
+            let url = ci ? `http://localhost:3000/${pathBase}/${ci}` : `http://localhost:3000/${pathBase}`;
+            
+            if (isTurnos && currentFilter) {
+                url += (url.includes('?') ? '&' : '?') + `filter=${currentFilter}`;
+            }
+
             const response = await fetch(url);
             
             if (!response.ok) {
@@ -117,4 +124,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Event listeners for filter buttons (specifically for Turnos)
+    const filterButtons = document.querySelectorAll('.btn-filter-toggle');
+    filterButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            const searchInput = document.getElementById('search-ci');
+            fetchData(searchInput && searchInput.value.trim() !== '' ? searchInput.value.trim() : null);
+        });
+    });
 });
