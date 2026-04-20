@@ -19,10 +19,10 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'sql111.infinityfree.com',
-    user: process.env.DB_USER || 'if0_41704166',
-    password: process.env.DB_PASSWORD || 'wBidiQGHCjxfdC',
-    database: process.env.DB_NAME || 'if0_41704166_consultorio',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     port: process.env.DB_PORT || 3306,
     multipleStatements: true
 });
@@ -59,6 +59,11 @@ app.post('/api/login', (req, res) => {
     }
     
     res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+});
+
+// Health check endpoint for Render monitoring
+app.get('/api/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
 // Proteger rutas de la API
