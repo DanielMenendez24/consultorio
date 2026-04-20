@@ -1,12 +1,12 @@
 const mysql = require('mysql2');
-require('dotenv').config({ path: './assets/js/.env' }); // Adjust path if needed
+require('dotenv').config({ path: '../.env' }); // Adjust path if needed
 
 const connection = mysql.createConnection({
-    host: process.env.DB_HOST || 'mysql-denn241198-daniel-2636.d.aivencloud.com',
-    user: process.env.DB_USER || 'avnadmin',
-    password: process.env.DB_PASSWORD || 'AVNS_clfMnmRknpxv5SOGJEA',
-    database: process.env.DB_NAME || 'consultorio',
-    port: process.env.DB_PORT || 20155
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT
 });
 
 connection.query('SELECT ci, estado FROM paciente', (err, results) => {

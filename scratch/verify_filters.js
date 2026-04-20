@@ -1,5 +1,5 @@
 async function verifyFilters() {
-    const baseUrl = 'http://localhost:3000';
+    const baseUrl = 'https://consultorio-w2cg.onrender.com';
     try {
         console.log('--- Fetching PAST turns ---');
         const resPast = await fetch(`${baseUrl}/turno?filter=past`);
