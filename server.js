@@ -5,21 +5,25 @@ const mysql = require('mysql2');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const path = require('path');
 
 const SECRET_KEY = process.env.JWT_SECRET || 'lasegundaopcion_secret_2026';
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
+// Serve static files from the root directory
+app.use(express.static(__dirname));
+
 const pool = mysql.createPool({
-    host: process.env.DB_HOST || 'mysql-denn241198-daniel-2636.d.aivencloud.com',
-    user: process.env.DB_USER || 'avnadmin',
-    password: process.env.DB_PASSWORD || 'AVNS_clfMnmRknpxv5SOGJEA',
-    database: process.env.DB_NAME || 'consultorio',
-    port: process.env.DB_PORT || 20155,
+    host: process.env.DB_HOST || 'sql111.infinityfree.com',
+    user: process.env.DB_USER || 'if0_41704166',
+    password: process.env.DB_PASSWORD || 'wBidiQGHCjxfdC',
+    database: process.env.DB_NAME || 'if0_41704166_consultorio',
+    port: process.env.DB_PORT || 3306,
     multipleStatements: true
 });
 
@@ -49,8 +53,6 @@ function authenticateToken(req, res, next) {
 app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
     
-    // Por simplicidad en este MVP, usamos un admin hardcoded 
-    // pero preparado para escalar a BD.
     if (username === 'admin' && password === 'admin') {
         const token = jwt.sign({ username: 'admin', role: 'admin' }, SECRET_KEY, { expiresIn: '8h' });
         return res.json({ token });
@@ -59,14 +61,12 @@ app.post('/api/login', (req, res) => {
     res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
 });
 
-// Proteger todas las rutas de la API con el middleware
-// (Nota: Podríamos aplicarlo a grupos específicos, pero por seguridad lo aplicamos a las principales)
+// Proteger rutas de la API
 app.use(['/paciente', '/medico', '/turno', '/especialidad', '/persona', '/api/stats'], (req, res, next) => {
-    // Excluir búsqueda pública si fuera necesario, pero aquí todo es gestión interna
     authenticateToken(req, res, next);
 });
 
-// Endpoint de Estadísticas para el Dashboard
+// Endpoint de Estadísticas
 app.get('/api/stats', (req, res) => {
     const qPatients = "SELECT COUNT(*) as total FROM paciente WHERE estado = 'Alta'";
     const qMedicos = "SELECT COUNT(*) as total FROM medico WHERE estado = 'Alta'";
@@ -85,7 +85,6 @@ app.get('/api/stats', (req, res) => {
     });
 });
 
-// Logic to automatically update expired appointments to 'Realizada'
 function autoUpdateExpiredTurnos() {
     const sql = `
         UPDATE consulta 
@@ -104,7 +103,6 @@ function autoUpdateExpiredTurnos() {
     });
 }
 
-// Check for expired appointments every 60 seconds
 setInterval(autoUpdateExpiredTurnos, 60000);
 
 app.get('/paciente', (req, res) => {
@@ -268,7 +266,8 @@ app.get('/turno', (req, res) => {
             c.observaciones AS 'Observaciones',
             c.estado AS 'Estado',
             pac.ci AS 'ciPaciente',
-            c.fechaConsulta AS 'fechaConsulta'
+            c.fechaConsulta AS 'fechaConsulta',
+            c.idConsulta
         FROM consulta c
         JOIN paciente pac ON c.idPaciente = pac.idPaciente
         JOIN persona p_paciente ON pac.ci = p_paciente.ci
@@ -306,7 +305,8 @@ app.get('/turno/:ci', (req, res) => {
             c.observaciones AS 'Observaciones',
             c.estado AS 'Estado',
             pac.ci AS 'ciPaciente',
-            c.fechaConsulta AS 'fechaConsulta'
+            c.fechaConsulta AS 'fechaConsulta',
+            c.idConsulta
         FROM consulta c
         JOIN paciente pac ON c.idPaciente = pac.idPaciente
         JOIN persona p_paciente ON pac.ci = p_paciente.ci
@@ -349,36 +349,30 @@ app.post('/paciente', (req, res) => {
     const { ci, nombre, apellido, fechaNacimiento, sexo, departamento, ciudad, barrio, calle, numeroPuerta, tipoSangre, telPersona } = req.body;
 
     pool.getConnection((err, connection) => {
-        if (err) {
-            console.error('Database connection failed:', err);
-            return res.status(500).json({ error: 'Database connection failed' });
-        }
+        if (err) return res.status(500).json({ error: 'Database connection failed' });
 
         connection.beginTransaction(err => {
             if (err) {
                 connection.release();
-                console.error('Transaction start failed:', err);
                 return res.status(500).json({ error: 'Transaction start failed' });
             }
 
-            // Verificar si la persona ya existe
             connection.query('SELECT ci FROM persona WHERE ci = ?', [ci], (err, rows) => {
                 if (err) {
                     return connection.rollback(() => {
                         connection.release();
-                        res.status(500).json({ error: 'Error al verificar persona', details: err.message });
+                        res.status(500).json({ error: 'Error al verificar persona' });
                     });
                 }
 
                 const personExists = rows.length > 0;
 
                 const finishRegistration = () => {
-                    // Verificar si ya es paciente
                     connection.query('SELECT ci FROM paciente WHERE ci = ?', [ci], (err, pRows) => {
                         if (err) {
                             return connection.rollback(() => {
                                 connection.release();
-                                res.status(500).json({ error: 'Error al verificar paciente', details: err.message });
+                                res.status(500).json({ error: 'Error al verificar paciente' });
                             });
                         }
 
@@ -394,7 +388,7 @@ app.post('/paciente', (req, res) => {
                             if (err) {
                                 return connection.rollback(() => {
                                     connection.release();
-                                    res.status(500).json({ error: 'Error al insertar en paciente', details: err.message });
+                                    res.status(500).json({ error: 'Error al insertar en paciente' });
                                 });
                             }
 
@@ -420,7 +414,7 @@ app.post('/paciente', (req, res) => {
                         if (err) {
                             return connection.rollback(() => {
                                 connection.release();
-                                res.status(500).json({ error: 'Error al insertar en persona', details: err.message });
+                                res.status(500).json({ error: 'Error al insertar en persona' });
                             });
                         }
 
@@ -432,7 +426,7 @@ app.post('/paciente', (req, res) => {
                                 if (err) {
                                     return connection.rollback(() => {
                                         connection.release();
-                                        res.status(500).json({ error: 'Error al insertar teléfonos', details: err.message });
+                                        res.status(500).json({ error: 'Error al insertar teléfonos' });
                                     });
                                 }
                                 finishRegistration();
@@ -451,36 +445,30 @@ app.post('/medico', (req, res) => {
     const { ci, nombre, apellido, fechaNacimiento, sexo, departamento, ciudad, barrio, calle, numeroPuerta, especialidad, telPersona } = req.body;
 
     pool.getConnection((err, connection) => {
-        if (err) {
-            console.error('Database connection failed:', err);
-            return res.status(500).json({ error: 'Database connection failed' });
-        }
+        if (err) return res.status(500).json({ error: 'Database connection failed' });
 
         connection.beginTransaction(err => {
             if (err) {
                 connection.release();
-                console.error('Transaction start failed:', err);
                 return res.status(500).json({ error: 'Transaction start failed' });
             }
 
-            // Verificar si la persona ya existe
             connection.query('SELECT ci FROM persona WHERE ci = ?', [ci], (err, rows) => {
                 if (err) {
                     return connection.rollback(() => {
                         connection.release();
-                        res.status(500).json({ error: 'Error al verificar persona', details: err.message });
+                        res.status(500).json({ error: 'Error al verificar persona' });
                     });
                 }
 
                 const personExists = rows.length > 0;
 
                 const finishRegistration = () => {
-                    // Verificar si ya es médico
                     connection.query('SELECT ci FROM medico WHERE ci = ?', [ci], (err, mRows) => {
                         if (err) {
                             return connection.rollback(() => {
                                 connection.release();
-                                res.status(500).json({ error: 'Error al verificar médico', details: err.message });
+                                res.status(500).json({ error: 'Error al verificar médico' });
                             });
                         }
 
@@ -496,7 +484,7 @@ app.post('/medico', (req, res) => {
                             if (err) {
                                 return connection.rollback(() => {
                                     connection.release();
-                                    res.status(500).json({ error: 'Error al insertar en médico', details: err.message });
+                                    res.status(500).json({ error: 'Error al insertar en médico' });
                                 });
                             }
 
@@ -522,7 +510,7 @@ app.post('/medico', (req, res) => {
                         if (err) {
                             return connection.rollback(() => {
                                 connection.release();
-                                res.status(500).json({ error: 'Error al insertar en persona', details: err.message });
+                                res.status(500).json({ error: 'Error al insertar en persona' });
                             });
                         }
 
@@ -534,7 +522,7 @@ app.post('/medico', (req, res) => {
                                 if (err) {
                                     return connection.rollback(() => {
                                         connection.release();
-                                        res.status(500).json({ error: 'Error al insertar teléfonos', details: err.message });
+                                        res.status(500).json({ error: 'Error al insertar teléfonos' });
                                     });
                                 }
                                 finishRegistration();
@@ -612,11 +600,11 @@ app.put('/paciente/:ci', (req, res) => {
             };
 
             updatePersona((err) => {
-                if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating persona', details: err.message }); });
+                if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating persona' }); });
                 updateTel((err) => {
-                    if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating phone', details: err.message }); });
+                    if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating phone' }); });
                     updatePaciente((err) => {
-                        if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating paciente', details: err.message }); });
+                        if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating paciente' }); });
 
                         connection.commit(err => {
                             if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Commit failed' }); });
@@ -693,11 +681,11 @@ app.put('/medico/:ci', (req, res) => {
             };
 
             updatePersona((err) => {
-                if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating persona', details: err.message }); });
+                if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating persona' }); });
                 updateTel((err) => {
-                    if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating phone', details: err.message }); });
+                    if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating phone' }); });
                     updateMedico((err) => {
-                        if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating medico', details: err.message }); });
+                        if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Error updating medico' }); });
 
                         connection.commit(err => {
                             if (err) return connection.rollback(() => { connection.release(); res.status(500).json({ error: 'Commit failed' }); });
@@ -712,68 +700,32 @@ app.put('/medico/:ci', (req, res) => {
 });
 
 app.post('/turno', (req, res) => {
-    const { ciPaciente, ciMedico, fecha, hora, motivo, observaciones, estado } = req.body;
+    const { ciPaciente, ciMedico, fecha, hora, motivo, observaciones } = req.body;
 
-    // 1. Get idPaciente from CI
     pool.query('SELECT idPaciente FROM paciente WHERE ci = ?', [ciPaciente], (err, pResult) => {
         if (err) return res.status(500).json({ error: 'Error de base de datos (Paciente)' });
         if (pResult.length === 0) return res.status(404).json({ error: 'No existe un paciente con esa CI' });
 
         const idPaciente = pResult[0].idPaciente;
 
-        // 2. Get nroLicencia from CI
         pool.query('SELECT nroLicencia FROM medico WHERE ci = ?', [ciMedico], (err, mResult) => {
             if (err) return res.status(500).json({ error: 'Error de base de datos (Médico)' });
             if (mResult.length === 0) return res.status(404).json({ error: 'No existe un médico con esa CI' });
 
             const nroLicencia = mResult[0].nroLicencia;
 
-            // 3. Insert into consulta (Always default to Pendiente)
-
-
-            const sql = `INSERT INTO consulta (fechaConsulta, horaConsulta, idPaciente, nroLicencia, motivoConsulta, observaciones, estado) 
-
-
-                         VALUES (?, ?, ?, ?, ?, ?, 'Pendiente')`;
-
-
+            const sql = `INSERT INTO consulta (fechaConsulta, horaConsulta, idPaciente, nroLicencia, motivoConsulta, observaciones, estado) VALUES (?, ?, ?, ?, ?, ?, 'Pendiente')`;
             pool.query(sql, [fecha, hora, idPaciente, nroLicencia, motivo, observaciones], (err, result) => {
-                if (err) {
-                    console.error('Error al registrar turno:', err);
-                    return res.status(500).json({ error: 'Error al registrar turno', details: err.message });
-                }
-                res.status(201).json({
-                    message: 'Turno registrado exitosamente',
-                    idConsulta: result.insertId
-                });
+                if (err) return res.status(500).json({ error: 'Error al registrar turno' });
+                res.status(201).json({ message: 'Turno registrado exitosamente', idConsulta: result.insertId });
             });
         });
     });
 });
 
-app.get('/turno/search/:ciPaciente/:fecha', (req, res) => {
-    const { ciPaciente, fecha } = req.params;
-    const sql = `
-        SELECT c.*, p_medico.ci as ciMedico, 
-               CONCAT(p_paciente.apellidoP, ', ', p_paciente.nombreP) as Paciente,
-               CONCAT(p_medico.apellidoP, ', ', p_medico.nombreP) as Medico
-        FROM consulta c
-        JOIN paciente pac ON c.idPaciente = pac.idPaciente
-        JOIN persona p_paciente ON pac.ci = p_paciente.ci
-        JOIN medico m ON c.nroLicencia = m.nroLicencia
-        JOIN persona p_medico ON m.ci = p_medico.ci
-        WHERE pac.ci = ? AND c.fechaConsulta = ?
-        LIMIT 1
-    `;
-    pool.query(sql, [ciPaciente, fecha], (err, result) => {
-        if (err) return res.status(500).json({ error: 'Error de base de datos' });
-        res.json(result);
-    });
-});
-
 app.put('/turno/:id', (req, res) => {
     const id = req.params.id;
-    const data = req.body; // Field mapping happens here
+    const data = req.body;
 
     const fields = {};
     if (data.fecha) fields.fechaConsulta = data.fecha;
@@ -785,7 +737,7 @@ app.put('/turno/:id', (req, res) => {
     if (Object.keys(fields).length === 0) return res.status(400).json({ error: 'No fields to update' });
 
     pool.query('UPDATE consulta SET ? WHERE idConsulta = ?', [fields, id], (err, result) => {
-        if (err) return res.status(500).json({ error: 'Error al actualizar turno', details: err.message });
+        if (err) return res.status(500).json({ error: 'Error al actualizar turno' });
         res.status(200).json({ message: 'Turno actualizado con éxito' });
     });
 });
@@ -793,11 +745,7 @@ app.put('/turno/:id', (req, res) => {
 app.delete('/paciente/:ci', (req, res) => {
     const ci = req.params.ci;
     pool.query("UPDATE paciente SET estado = 'Baja' WHERE ci = ?", [ci], (err, result) => {
-        if (err) {
-            console.error('Error al dar de baja al paciente:', err);
-            return res.status(500).json({ error: 'Error al dar de baja al paciente', details: err.message });
-        }
-        if (result.affectedRows === 0) return res.status(404).json({ error: 'No se encontró el paciente' });
+        if (err) return res.status(500).json({ error: 'Error al dar de baja al paciente' });
         res.status(200).json({ message: 'Paciente dado de baja con éxito' });
     });
 });
@@ -805,10 +753,7 @@ app.delete('/paciente/:ci', (req, res) => {
 app.patch('/paciente/reactivar/:ci', (req, res) => {
     const ci = req.params.ci;
     pool.query("UPDATE paciente SET estado = 'Alta' WHERE ci = ?", [ci], (err, result) => {
-        if (err) {
-            console.error('Error al dar de alta al paciente:', err);
-            return res.status(500).json({ error: 'Error al dar de alta al paciente', details: err.message });
-        }
+        if (err) return res.status(500).json({ error: 'Error al dar de alta al paciente' });
         res.status(200).json({ message: 'Paciente reactivado con éxito' });
     });
 });
@@ -816,11 +761,7 @@ app.patch('/paciente/reactivar/:ci', (req, res) => {
 app.delete('/medico/:ci', (req, res) => {
     const ci = req.params.ci;
     pool.query("UPDATE medico SET estado = 'Baja' WHERE ci = ?", [ci], (err, result) => {
-        if (err) {
-            console.error('Error al dar de baja al médico:', err);
-            return res.status(500).json({ error: 'Error al dar de baja al médico', details: err.message });
-        }
-        if (result.affectedRows === 0) return res.status(404).json({ error: 'No se encontró el médico' });
+        if (err) return res.status(500).json({ error: 'Error al dar de baja al médico' });
         res.status(200).json({ message: 'Médico dado de baja con éxito' });
     });
 });
@@ -828,10 +769,7 @@ app.delete('/medico/:ci', (req, res) => {
 app.patch('/medico/reactivar/:ci', (req, res) => {
     const ci = req.params.ci;
     pool.query("UPDATE medico SET estado = 'Alta' WHERE ci = ?", [ci], (err, result) => {
-        if (err) {
-            console.error('Error al dar de alta al médico:', err);
-            return res.status(500).json({ error: 'Error al dar de alta al médico', details: err.message });
-        }
+        if (err) return res.status(500).json({ error: 'Error al dar de alta al médico' });
         res.status(200).json({ message: 'Médico reactivado con éxito' });
     });
 });
@@ -839,13 +777,15 @@ app.patch('/medico/reactivar/:ci', (req, res) => {
 app.delete('/turno/:id', (req, res) => {
     const id = req.params.id;
     pool.query("UPDATE consulta SET estado = 'Cancelada' WHERE idConsulta = ?", [id], (err, result) => {
-        if (err) {
-            console.error('Error al cancelar turno:', err);
-            return res.status(500).json({ error: 'Error al cancelar turno', details: err.message });
-        }
-        if (result.affectedRows === 0) return res.status(404).json({ error: 'No se encontró el turno' });
+        if (err) return res.status(500).json({ error: 'Error al cancelar turno' });
         res.status(200).json({ message: 'Turno cancelado con éxito' });
     });
+});
+
+// Root fallback to serve index.html
+// Root fallback to serve index.html for any unmatched routes
+app.use((req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.listen(port, () => {

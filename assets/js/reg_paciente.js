@@ -172,8 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isBaja) {
                     if (confirm(`¿Desea dar de ALTA nuevamente al paciente con CI ${ciValue}?`)) {
                         try {
-                            const response = await fetch(`http://localhost:3000/paciente/reactivar/${ciValue}`, {
-                                method: 'PATCH'
+                            const response = await fetch(`/paciente/reactivar/${ciValue}`, {
+                                method: 'PATCH',
+                                headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
                             });
                             if (response.ok) {
                                 alert('¡Paciente reactivado con éxito!');

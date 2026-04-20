@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tbody.appendChild(skeletonTr);
             }
             
-            let url = ci ? `http://localhost:3000/${pathBase}/${ci}` : `http://localhost:3000/${pathBase}`;
+            let url = ci ? `/${pathBase}/${ci}` : `/${pathBase}`;
             
             if (isTurnos && currentFilter) {
                 url += (url.includes('?') ? '&' : '?') + `filter=${currentFilter}`;

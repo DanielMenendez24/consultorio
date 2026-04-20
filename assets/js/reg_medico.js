@@ -146,9 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 try {
                     const targetCi = originalData ? originalData.ci : ciValue;
-                    const response = await fetch(`http://localhost:3000/medico/${targetCi}`, {
+                    const response = await fetch(`/medico/${targetCi}`, {
                         method: 'PUT',
-                        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}`,  'Content-Type': 'application/json' },
+                        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`, 'Content-Type': 'application/json' },
                         body: JSON.stringify(updates)
                     });
 

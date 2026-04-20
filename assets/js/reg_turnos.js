@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Fetch Specialties on Load ---
         const fetchSpecialties = async () => {
             try {
-                const response = await fetch('http://localhost:3000/especialidad', { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}` } });
+                const response = await fetch('/especialidad', { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` } });
                 if (response.ok) {
                     const specialties = await response.json();
                     especialidadSelect.innerHTML = '<option value="" disabled selected>Seleccione especialidad...</option>';
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // --- Fetch Doctors by Specialty ---
         const fetchDoctorsBySpecialty = async (specialty, selectedCi = null) => {
             try {
-                const response = await fetch(`http://localhost:3000/medico/especialidad/${encodeURIComponent(specialty)}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}` } });
+                const response = await fetch(`/medico/especialidad/${encodeURIComponent(specialty)}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` } });
                 if (response.ok) {
                     const doctors = await response.json();
                     ciMedicoSelect.innerHTML = '<option value="" disabled selected>Seleccione médico...</option>';
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const fecha = fechaInput.value;
             if (ciPaciente.length >= 7 && fecha) {
                 try {
-                    const response = await fetch(`http://localhost:3000/turno/search/${ciPaciente}/${fecha}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}` } });
+                    const response = await fetch(`/turno/search/${ciPaciente}/${fecha}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` } });
                     if (response.ok) {
                         const data = await response.json();
                         if (data && data.length > 0) {
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             currentTurnoId = turno.idConsulta;
 
                             // To set the doctor correctly, we first fetch their info to get their specialty
-                            const docInfoResp = await fetch(`http://localhost:3000/persona/${turno.ciMedico}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}` } });
+                            const docInfoResp = await fetch(`/persona/${turno.ciMedico}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` } });
                             if (docInfoResp.ok) {
                                 const docInfo = await docInfoResp.json();
                                 if (docInfo && docInfo.length > 0) {
@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const fetchPatientName = async (ci) => {
             if (ci.length >= 7) {
                 try {
-                    const response = await fetch(`http://localhost:3000/persona/${ci}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}` } });
+                    const response = await fetch(`/persona/${ci}`, { headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` } });
                     if (response.ok) {
                         const data = await response.json();
                         if (data && data.length > 0) {
@@ -275,9 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const response = await fetch('http://localhost:3000/turno', {
+                const response = await fetch('/turno', {
                     method: 'POST',
-                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}`,  'Content-Type': 'application/json' },
+                    headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
                 });
 
@@ -314,9 +314,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
 
                 try {
-                    const response = await fetch(`http://localhost:3000/turno/${currentTurnoId}`, {
+                    const response = await fetch(`/turno/${currentTurnoId}`, {
                         method: 'PUT',
-                        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`,  "Authorization": `Bearer ${localStorage.getItem("token")}`,  'Content-Type': 'application/json' },
+                        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}`, 'Content-Type': 'application/json' },
                         body: JSON.stringify(updateData)
                     });
 
@@ -340,8 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!confirm('¿Estás seguro de que deseas cancelar este turno? El estado cambiará a "Cancelada".')) return;
 
                 try {
-                    const response = await fetch(`http://localhost:3000/turno/${currentTurnoId}`, {
-                        method: 'DELETE'
+                    const response = await fetch(`/turno/${currentTurnoId}`, {
+                        method: 'DELETE',
+                        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
                     });
 
                     if (response.ok) {
