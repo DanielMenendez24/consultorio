@@ -9,7 +9,7 @@ const bcrypt = require('bcryptjs');
 const SECRET_KEY = process.env.JWT_SECRET || 'lasegundaopcion_secret_2026';
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -20,7 +20,10 @@ const pool = mysql.createPool({
     password: process.env.DB_PASSWORD || 'AVNS_clfMnmRknpxv5SOGJEA',
     database: process.env.DB_NAME || 'consultorio',
     port: process.env.DB_PORT || 20155,
-    multipleStatements: true
+    multipleStatements: true,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 pool.getConnection((err, conn) => {
